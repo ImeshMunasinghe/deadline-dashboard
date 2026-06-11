@@ -68,10 +68,10 @@ export function TaskItem({ task, goalId, dispatch, dragHandleProps, availableTas
     <li
       className={`group rounded-xl border transition-all ${
         task.completed
-          ? 'bg-white dark:bg-neutral-900/50 border-gray-200 dark:border-neutral-800/50 opacity-60'
+          ? 'bg-white dark:bg-neutral-900/50 border-slate-200 dark:border-neutral-800/50 opacity-60'
           : overdue
           ? 'bg-amber-950/20 border-amber-900/40'
-          : 'bg-white dark:bg-neutral-900 border-gray-200 dark:border-neutral-800'
+          : 'bg-white dark:bg-neutral-900 border-slate-200 dark:border-neutral-800'
       }`}
     >
       <div className="flex items-start gap-2 p-3">
@@ -79,7 +79,7 @@ export function TaskItem({ task, goalId, dispatch, dragHandleProps, availableTas
         <div
           {...dragHandleProps}
           aria-label="Drag to reorder task"
-          className="shrink-0 mt-0.5 text-gray-300 dark:text-neutral-700 hover:text-gray-400 dark:text-neutral-500 cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 transition-opacity"
+          className="shrink-0 mt-0.5 text-slate-300 dark:text-neutral-700 hover:text-slate-400 dark:text-neutral-500 cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 transition-opacity"
         >
           <GripVertical size={14} />
         </div>
@@ -91,14 +91,14 @@ export function TaskItem({ task, goalId, dispatch, dragHandleProps, availableTas
           aria-label={task.completed ? 'Mark task incomplete' : 'Mark task complete'}
           className={`shrink-0 mt-0.5 w-4 h-4 rounded border transition-all ${
             isBlocked
-              ? 'border-gray-300 dark:border-neutral-700 bg-gray-100 dark:bg-neutral-800 opacity-50 cursor-not-allowed'
+              ? 'border-slate-300 dark:border-neutral-700 bg-slate-100 dark:bg-neutral-800 opacity-50 cursor-not-allowed'
               : task.completed
               ? 'bg-blue-600 border-blue-600'
-              : 'border-gray-400 dark:border-neutral-600 hover:border-blue-600'
+              : 'border-slate-400 dark:border-neutral-600 hover:border-blue-600'
           } flex items-center justify-center`}
         >
           {isBlocked ? (
-            <Lock size={10} className="text-gray-400 dark:text-neutral-500" />
+            <Lock size={10} className="text-slate-400 dark:text-neutral-500" />
           ) : task.completed && (
             <svg width="8" height="8" viewBox="0 0 8 8" className="text-white" fill="none">
               <path d="M1 4L3 6L7 2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
@@ -111,7 +111,7 @@ export function TaskItem({ task, goalId, dispatch, dragHandleProps, availableTas
           <div className="flex items-start gap-2 flex-wrap">
             <span
               className={`text-sm leading-snug flex-1 min-w-0 ${
-                task.completed ? 'line-through text-gray-400 dark:text-neutral-600' : 'text-gray-800 dark:text-neutral-200'
+                task.completed ? 'line-through text-slate-400 dark:text-neutral-600' : 'text-slate-800 dark:text-neutral-200'
               }`}
             >
               {task.text}
@@ -137,7 +137,7 @@ export function TaskItem({ task, goalId, dispatch, dragHandleProps, availableTas
                   type="date"
                   autoFocus
                   defaultValue={task.dueDate ?? ''}
-                  className="text-[10px] bg-gray-100 dark:bg-neutral-800 text-gray-700 dark:text-neutral-300 rounded px-1 py-0.5 outline-none border border-blue-600"
+                  className="text-[10px] bg-slate-100 dark:bg-neutral-800 text-slate-700 dark:text-neutral-300 rounded px-1 py-0.5 outline-none border border-blue-600"
                   onBlur={(e) => {
                     dispatch({
                       type: 'UPDATE_TASK',
@@ -156,8 +156,8 @@ export function TaskItem({ task, goalId, dispatch, dragHandleProps, availableTas
                   overdue
                     ? 'text-amber-400'
                     : task.dueDate
-                    ? 'text-gray-400 dark:text-neutral-500 hover:text-gray-700 dark:text-neutral-300'
-                    : 'text-gray-300 dark:text-neutral-700 hover:text-gray-400 dark:text-neutral-500'
+                    ? 'text-slate-400 dark:text-neutral-500 hover:text-slate-700 dark:text-neutral-300'
+                    : 'text-slate-300 dark:text-neutral-700 hover:text-slate-400 dark:text-neutral-500'
                 }`}
               >
                 <Calendar size={10} />
@@ -175,7 +175,7 @@ export function TaskItem({ task, goalId, dispatch, dragHandleProps, availableTas
                   min="0"
                   placeholder="mins"
                   defaultValue={task.estimatedMinutes ?? ''}
-                  className="text-[10px] bg-gray-100 dark:bg-neutral-800 text-gray-700 dark:text-neutral-300 rounded px-1 py-0.5 outline-none border border-blue-600 w-12"
+                  className="text-[10px] bg-slate-100 dark:bg-neutral-800 text-slate-700 dark:text-neutral-300 rounded px-1 py-0.5 outline-none border border-blue-600 w-12"
                   onBlur={(e) => {
                     const val = parseInt(e.target.value);
                     dispatch({
@@ -195,7 +195,7 @@ export function TaskItem({ task, goalId, dispatch, dragHandleProps, availableTas
                 onClick={() => setEditingMinutes(true)}
                 aria-label={task.estimatedMinutes ? 'Edit minutes' : 'Add minutes'}
                 className={`flex items-center gap-1 text-[10px] transition-colors ${
-                  task.estimatedMinutes ? 'text-gray-400 dark:text-neutral-500 hover:text-gray-700 dark:text-neutral-300' : 'text-gray-300 dark:text-neutral-700 hover:text-gray-400 dark:text-neutral-500'
+                  task.estimatedMinutes ? 'text-slate-400 dark:text-neutral-500 hover:text-slate-700 dark:text-neutral-300' : 'text-slate-300 dark:text-neutral-700 hover:text-slate-400 dark:text-neutral-500'
                 }`}
               >
                 <Clock size={10} />
@@ -211,7 +211,7 @@ export function TaskItem({ task, goalId, dispatch, dragHandleProps, availableTas
                 payload: { goalId, taskId: task.id, updates: { recurrence: e.target.value ? e.target.value as any : null } }
               })}
               className={`text-[10px] bg-transparent outline-none cursor-pointer transition-colors ${
-                task.recurrence ? 'text-gray-400 dark:text-neutral-500' : 'text-gray-300 dark:text-neutral-700'
+                task.recurrence ? 'text-slate-400 dark:text-neutral-500' : 'text-slate-300 dark:text-neutral-700'
               }`}
             >
               <option value="">No Repeat</option>
@@ -229,7 +229,7 @@ export function TaskItem({ task, goalId, dispatch, dragHandleProps, availableTas
                   payload: { goalId, taskId: task.id, updates: { blockedBy: e.target.value || null } }
                 })}
                 className={`text-[10px] bg-transparent outline-none cursor-pointer transition-colors max-w-[80px] truncate ${
-                  task.blockedBy ? 'text-gray-400 dark:text-neutral-500' : 'text-gray-300 dark:text-neutral-700'
+                  task.blockedBy ? 'text-slate-400 dark:text-neutral-500' : 'text-slate-300 dark:text-neutral-700'
                 }`}
                 title="Blocked By"
               >
@@ -242,7 +242,7 @@ export function TaskItem({ task, goalId, dispatch, dragHandleProps, availableTas
 
             {/* Subtask count */}
             {task.subtasks.length > 0 && (
-              <span className="text-[10px] text-gray-400 dark:text-neutral-600">
+              <span className="text-[10px] text-slate-400 dark:text-neutral-600">
                 {subtasksDone}/{task.subtasks.length} subtasks
               </span>
             )}
@@ -255,7 +255,7 @@ export function TaskItem({ task, goalId, dispatch, dragHandleProps, availableTas
             <button
               onClick={() => setExpanded((v) => !v)}
               aria-label={expanded ? 'Collapse subtasks' : 'Expand subtasks'}
-              className="p-1 text-gray-400 dark:text-neutral-600 hover:text-gray-700 dark:text-neutral-300 transition-colors"
+              className="p-1 text-slate-400 dark:text-neutral-600 hover:text-slate-700 dark:text-neutral-300 transition-colors"
             >
               {expanded ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
             </button>
@@ -263,14 +263,14 @@ export function TaskItem({ task, goalId, dispatch, dragHandleProps, availableTas
           <button
             onClick={() => setAddingSubtask((v) => !v)}
             aria-label="Add subtask"
-            className="p-1 text-gray-300 dark:text-neutral-700 hover:text-blue-500 transition-colors opacity-0 group-hover:opacity-100"
+            className="p-1 text-slate-300 dark:text-neutral-700 hover:text-blue-500 transition-colors opacity-0 group-hover:opacity-100"
           >
             <Plus size={13} />
           </button>
           <button
             onClick={() => dispatch({ type: 'DELETE_TASK', payload: { goalId, taskId: task.id } })}
             aria-label="Delete task"
-            className="p-1 text-gray-300 dark:text-neutral-700 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
+            className="p-1 text-slate-300 dark:text-neutral-700 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
           >
             <Trash2 size={13} />
           </button>
@@ -283,7 +283,7 @@ export function TaskItem({ task, goalId, dispatch, dragHandleProps, availableTas
           {task.subtasks.map((sub) => (
             <li
               key={sub.id}
-              className="group/sub flex items-center gap-2 py-1 rounded-lg px-2 hover:bg-gray-100 dark:bg-neutral-800/50 transition-colors"
+              className="group/sub flex items-center gap-2 py-1 rounded-lg px-2 hover:bg-slate-100 dark:bg-neutral-800/50 transition-colors"
             >
               <button
                 onClick={() =>
@@ -291,7 +291,7 @@ export function TaskItem({ task, goalId, dispatch, dragHandleProps, availableTas
                 }
                 aria-label={sub.completed ? 'Mark subtask incomplete' : 'Mark subtask complete'}
                 className={`shrink-0 w-3.5 h-3.5 rounded border transition-all ${
-                  sub.completed ? 'bg-blue-600 border-blue-600' : 'border-gray-400 dark:border-neutral-600 hover:border-blue-600'
+                  sub.completed ? 'bg-blue-600 border-blue-600' : 'border-slate-400 dark:border-neutral-600 hover:border-blue-600'
                 } flex items-center justify-center`}
               >
                 {sub.completed && (
@@ -302,7 +302,7 @@ export function TaskItem({ task, goalId, dispatch, dragHandleProps, availableTas
               </button>
               <span
                 className={`text-xs flex-1 ${
-                  sub.completed ? 'line-through text-gray-400 dark:text-neutral-600' : 'text-gray-500 dark:text-neutral-400'
+                  sub.completed ? 'line-through text-slate-400 dark:text-neutral-600' : 'text-slate-500 dark:text-neutral-400'
                 }`}
               >
                 {sub.text}
@@ -312,7 +312,7 @@ export function TaskItem({ task, goalId, dispatch, dragHandleProps, availableTas
                   dispatch({ type: 'DELETE_SUBTASK', payload: { goalId, taskId: task.id, subtaskId: sub.id } })
                 }
                 aria-label="Delete subtask"
-                className="opacity-0 group-hover/sub:opacity-100 text-gray-300 dark:text-neutral-700 hover:text-red-400 transition-all"
+                className="opacity-0 group-hover/sub:opacity-100 text-slate-300 dark:text-neutral-700 hover:text-red-400 transition-all"
               >
                 <Trash2 size={11} />
               </button>
@@ -334,7 +334,7 @@ export function TaskItem({ task, goalId, dispatch, dragHandleProps, availableTas
               if (e.key === 'Enter') handleAddSubtask();
               if (e.key === 'Escape') setAddingSubtask(false);
             }}
-            className="flex-1 text-xs bg-gray-100 dark:bg-neutral-800 text-gray-800 dark:text-neutral-200 rounded px-2 py-1 outline-none border border-gray-300 dark:border-neutral-700 focus:border-blue-600"
+            className="flex-1 text-xs bg-slate-100 dark:bg-neutral-800 text-slate-800 dark:text-neutral-200 rounded px-2 py-1 outline-none border border-slate-300 dark:border-neutral-700 focus:border-blue-600"
           />
           <button onClick={handleAddSubtask} className="text-xs text-blue-500 hover:text-blue-400">
             Add

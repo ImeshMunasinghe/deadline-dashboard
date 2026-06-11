@@ -15,8 +15,8 @@ html {
 /* ── Light mode body ──────────────────────────────────────── */
 body {
   margin: 0;
-  background-color: #f9fafb; /* gray-50 */
-  color: #111827; /* gray-900 */
+  background-color: #f8fafc; /* slate-50 */
+  color: #0f172a; /* slate-900 */
   transition: background-color 0.2s, color 0.2s;
 }
 
@@ -43,14 +43,14 @@ html.dark body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #d1d5db;
+  background: #cbd5e1;
   border-radius: 2px;
 }
 html.dark ::-webkit-scrollbar-thumb {
   background: #333;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #9ca3af;
+  background: #94a3b8;
 }
 html.dark ::-webkit-scrollbar-thumb:hover {
   background: #444;

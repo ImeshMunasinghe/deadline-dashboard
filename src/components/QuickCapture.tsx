@@ -55,7 +55,7 @@ export function QuickCapture({ dispatch }: QuickCaptureProps) {
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-start justify-center pt-[20vh] px-4">
-      <div className="bg-white dark:bg-neutral-900 border border-gray-300 dark:border-neutral-700 rounded-xl shadow-2xl w-full max-w-lg p-4">
+      <div className="bg-white dark:bg-neutral-900 border border-slate-300 dark:border-neutral-700 rounded-xl shadow-2xl w-full max-w-lg p-4">
         <div className="flex flex-col gap-2">
           <input
             ref={inputRef}
@@ -66,11 +66,11 @@ export function QuickCapture({ dispatch }: QuickCaptureProps) {
             onKeyDown={(e) => {
               if (e.key === 'Enter') handleAdd();
             }}
-            className="w-full bg-gray-100 dark:bg-neutral-800 text-gray-800 dark:text-neutral-200 placeholder-gray-400 dark:placeholder-neutral-500 rounded-lg px-4 py-3 outline-none border border-gray-400 dark:border-neutral-600 focus:border-blue-600 transition-colors text-lg"
+            className="w-full bg-slate-100 dark:bg-neutral-800 text-slate-800 dark:text-neutral-200 placeholder-slate-400 dark:placeholder-neutral-500 rounded-lg px-4 py-3 outline-none border border-slate-400 dark:border-neutral-600 focus:border-blue-600 transition-colors text-lg"
           />
           <div className="flex justify-between items-center px-1">
-            <span className="text-xs text-gray-400 dark:text-neutral-500">Press Enter to save to Inbox</span>
-            <span className="text-xs text-gray-400 dark:text-neutral-500">Esc to cancel</span>
+            <span className="text-xs text-slate-400 dark:text-neutral-500">Press Enter to save to Inbox</span>
+            <span className="text-xs text-slate-400 dark:text-neutral-500">Esc to cancel</span>
           </div>
         </div>
       </div>

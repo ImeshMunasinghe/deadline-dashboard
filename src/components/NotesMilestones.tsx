@@ -57,7 +57,7 @@ export function NotesMilestones({ goal, dispatch }: NotesMilestonesProps) {
   const todayPercent = timelinePercent(now.toISOString());
 
   return (
-    <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-2xl p-6">
+    <div className="bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-2xl p-6">
       {/* Tab switcher */}
       <div className="flex gap-1 mb-4">
         <button
@@ -65,7 +65,7 @@ export function NotesMilestones({ goal, dispatch }: NotesMilestonesProps) {
           className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg transition-colors ${
             tab === 'notes'
               ? 'bg-blue-900/40 text-blue-400 border border-blue-700/50'
-              : 'text-gray-400 dark:text-neutral-500 hover:text-gray-700 dark:text-neutral-300'
+              : 'text-slate-400 dark:text-neutral-500 hover:text-slate-700 dark:text-neutral-300'
           }`}
         >
           <BookOpen size={12} />
@@ -76,13 +76,13 @@ export function NotesMilestones({ goal, dispatch }: NotesMilestonesProps) {
           className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg transition-colors ${
             tab === 'milestones'
               ? 'bg-blue-900/40 text-blue-400 border border-blue-700/50'
-              : 'text-gray-400 dark:text-neutral-500 hover:text-gray-700 dark:text-neutral-300'
+              : 'text-slate-400 dark:text-neutral-500 hover:text-slate-700 dark:text-neutral-300'
           }`}
         >
           <Flag size={12} />
           Milestones
           {goal.milestones.length > 0 && (
-            <span className="text-gray-400 dark:text-neutral-600 ml-0.5">({goal.milestones.length})</span>
+            <span className="text-slate-400 dark:text-neutral-600 ml-0.5">({goal.milestones.length})</span>
           )}
         </button>
       </div>
@@ -94,7 +94,7 @@ export function NotesMilestones({ goal, dispatch }: NotesMilestonesProps) {
           defaultValue={goal.notes}
           onChange={(e) => handleNotesChange(e.target.value)}
           placeholder="Scratch notes, links, context... auto-saved as you type."
-          className="w-full h-36 text-sm bg-gray-100 dark:bg-neutral-800 text-gray-700 dark:text-neutral-300 placeholder-gray-400 dark:placeholder-neutral-600 rounded-lg px-3 py-2 outline-none border border-gray-300 dark:border-neutral-700 focus:border-blue-600 transition-colors resize-none leading-relaxed"
+          className="w-full h-36 text-sm bg-slate-100 dark:bg-neutral-800 text-slate-700 dark:text-neutral-300 placeholder-slate-400 dark:placeholder-neutral-600 rounded-lg px-3 py-2 outline-none border border-slate-300 dark:border-neutral-700 focus:border-blue-600 transition-colors resize-none leading-relaxed"
         />
       )}
 
@@ -109,13 +109,13 @@ export function NotesMilestones({ goal, dispatch }: NotesMilestonesProps) {
               value={msLabel}
               onChange={(e) => setMsLabel(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter') addMilestone(); }}
-              className="flex-1 text-xs bg-gray-100 dark:bg-neutral-800 text-gray-800 dark:text-neutral-200 rounded-lg px-2 py-1.5 outline-none border border-gray-300 dark:border-neutral-700 focus:border-blue-600"
+              className="flex-1 text-xs bg-slate-100 dark:bg-neutral-800 text-slate-800 dark:text-neutral-200 rounded-lg px-2 py-1.5 outline-none border border-slate-300 dark:border-neutral-700 focus:border-blue-600"
             />
             <input
               type="date"
               value={msDate}
               onChange={(e) => setMsDate(e.target.value)}
-              className="text-xs bg-gray-100 dark:bg-neutral-800 text-gray-500 dark:text-neutral-400 rounded-lg px-2 py-1.5 outline-none border border-gray-300 dark:border-neutral-700 focus:border-blue-600"
+              className="text-xs bg-slate-100 dark:bg-neutral-800 text-slate-500 dark:text-neutral-400 rounded-lg px-2 py-1.5 outline-none border border-slate-300 dark:border-neutral-700 focus:border-blue-600"
             />
             <button
               onClick={addMilestone}
@@ -130,7 +130,7 @@ export function NotesMilestones({ goal, dispatch }: NotesMilestonesProps) {
           {sorted.length > 0 && (
             <div className="relative pt-3">
               {/* Track line */}
-              <div className="relative h-1 bg-gray-100 dark:bg-neutral-800 rounded-full mx-2 mb-6">
+              <div className="relative h-1 bg-slate-100 dark:bg-neutral-800 rounded-full mx-2 mb-6">
                 {/* Today marker */}
                 <div
                   className="absolute top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-blue-500 border-2 border-neutral-900 z-10"
@@ -160,17 +160,17 @@ export function NotesMilestones({ goal, dispatch }: NotesMilestonesProps) {
                   return (
                     <li
                       key={m.id}
-                      className="group flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-gray-100 dark:bg-neutral-800/50 transition-colors"
+                      className="group flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-slate-100 dark:bg-neutral-800/50 transition-colors"
                     >
                       <span
                         className={`w-2 h-2 rounded-full shrink-0 ${
                           isPast ? 'bg-emerald-400' : 'bg-amber-400'
                         }`}
                       />
-                      <span className={`text-xs flex-1 ${isPast ? 'text-gray-400 dark:text-neutral-500 line-through' : 'text-gray-700 dark:text-neutral-300'}`}>
+                      <span className={`text-xs flex-1 ${isPast ? 'text-slate-400 dark:text-neutral-500 line-through' : 'text-slate-700 dark:text-neutral-300'}`}>
                         {m.label}
                       </span>
-                      <span className="text-[10px] text-gray-400 dark:text-neutral-600 shrink-0">
+                      <span className="text-[10px] text-slate-400 dark:text-neutral-600 shrink-0">
                         {formatDate(m.date)}
                       </span>
                       <button
@@ -181,7 +181,7 @@ export function NotesMilestones({ goal, dispatch }: NotesMilestonesProps) {
                           })
                         }
                         aria-label={`Delete milestone: ${m.label}`}
-                        className="opacity-0 group-hover:opacity-100 text-gray-300 dark:text-neutral-700 hover:text-red-400 transition-all"
+                        className="opacity-0 group-hover:opacity-100 text-slate-300 dark:text-neutral-700 hover:text-red-400 transition-all"
                       >
                         <Trash2 size={11} />
                       </button>
@@ -193,7 +193,7 @@ export function NotesMilestones({ goal, dispatch }: NotesMilestonesProps) {
           )}
 
           {sorted.length === 0 && (
-            <p className="text-xs text-gray-400 dark:text-neutral-600 text-center py-4">
+            <p className="text-xs text-slate-400 dark:text-neutral-600 text-center py-4">
               No milestones yet. Mark key dates on the timeline above.
             </p>
           )}

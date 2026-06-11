@@ -174,13 +174,13 @@ export function TaskList({ goal, dispatch }: TaskListProps) {
   const displayTasks = [...overdueTasks, ...regularTasks];
 
   return (
-    <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-2xl p-6">
+    <div className="bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-2xl p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-xs font-medium tracking-widest text-gray-400 dark:text-neutral-500 uppercase">
+        <h3 className="text-xs font-medium tracking-widest text-slate-400 dark:text-neutral-500 uppercase">
           Tasks
           {goal.tasks.length > 0 && (
-            <span className="ml-2 text-gray-300 dark:text-neutral-700">({goal.tasks.length})</span>
+            <span className="ml-2 text-slate-300 dark:text-neutral-700">({goal.tasks.length})</span>
           )}
         </h3>
 
@@ -189,13 +189,13 @@ export function TaskList({ goal, dispatch }: TaskListProps) {
           <button
             onClick={() => setShowSortMenu((v) => !v)}
             aria-label="Sort tasks"
-            className="flex items-center gap-1 text-xs text-gray-400 dark:text-neutral-600 hover:text-gray-700 dark:text-neutral-300 transition-colors"
+            className="flex items-center gap-1 text-xs text-slate-400 dark:text-neutral-600 hover:text-slate-700 dark:text-neutral-300 transition-colors"
           >
             <ArrowUpDown size={12} />
             {SORT_LABELS[sortMode]}
           </button>
           {showSortMenu && (
-            <div className="absolute right-0 top-full mt-1 bg-gray-100 dark:bg-neutral-800 border border-gray-300 dark:border-neutral-700 rounded-lg overflow-hidden shadow-xl z-10">
+            <div className="absolute right-0 top-full mt-1 bg-slate-100 dark:bg-neutral-800 border border-slate-300 dark:border-neutral-700 rounded-lg overflow-hidden shadow-xl z-10">
               {(Object.keys(SORT_LABELS) as SortMode[]).map((mode) => (
                 <button
                   key={mode}
@@ -203,7 +203,7 @@ export function TaskList({ goal, dispatch }: TaskListProps) {
                   className={`block w-full text-left px-3 py-2 text-xs transition-colors ${
                     sortMode === mode
                       ? 'text-blue-500 bg-blue-900/30'
-                      : 'text-gray-500 dark:text-neutral-400 hover:text-gray-800 dark:text-neutral-200 hover:bg-gray-200 dark:bg-neutral-700'
+                      : 'text-slate-500 dark:text-neutral-400 hover:text-slate-800 dark:text-neutral-200 hover:bg-slate-200 dark:bg-neutral-700'
                   }`}
                 >
                   {SORT_LABELS[mode]}
@@ -227,7 +227,7 @@ export function TaskList({ goal, dispatch }: TaskListProps) {
               if (e.key === 'Enter') addTask();
               if (e.key === 'Escape') { setText(''); inputRef.current?.blur(); }
             }}
-            className="flex-1 text-sm bg-gray-100 dark:bg-neutral-800 text-gray-800 dark:text-neutral-200 placeholder-gray-400 dark:placeholder-neutral-600 rounded-lg px-3 py-2 outline-none border border-gray-300 dark:border-neutral-700 focus:border-blue-600 transition-colors"
+            className="flex-1 text-sm bg-slate-100 dark:bg-neutral-800 text-slate-800 dark:text-neutral-200 placeholder-slate-400 dark:placeholder-neutral-600 rounded-lg px-3 py-2 outline-none border border-slate-300 dark:border-neutral-700 focus:border-blue-600 transition-colors"
           />
           <button
             onClick={addTask}
@@ -244,7 +244,7 @@ export function TaskList({ goal, dispatch }: TaskListProps) {
             value={priority}
             onChange={(e) => setPriority(e.target.value as Priority)}
             aria-label="Task priority"
-            className="text-xs bg-gray-100 dark:bg-neutral-800 text-gray-500 dark:text-neutral-400 rounded-lg px-2 py-1.5 outline-none border border-gray-300 dark:border-neutral-700 focus:border-blue-600 transition-colors cursor-pointer"
+            className="text-xs bg-slate-100 dark:bg-neutral-800 text-slate-500 dark:text-neutral-400 rounded-lg px-2 py-1.5 outline-none border border-slate-300 dark:border-neutral-700 focus:border-blue-600 transition-colors cursor-pointer"
           >
             <option value="low">Low priority</option>
             <option value="medium">Medium priority</option>
@@ -255,14 +255,14 @@ export function TaskList({ goal, dispatch }: TaskListProps) {
             value={dueDate}
             onChange={(e) => setDueDate(e.target.value)}
             aria-label="Task due date"
-            className="text-xs bg-gray-100 dark:bg-neutral-800 text-gray-500 dark:text-neutral-400 rounded-lg px-2 py-1.5 outline-none border border-gray-300 dark:border-neutral-700 focus:border-blue-600 transition-colors"
+            className="text-xs bg-slate-100 dark:bg-neutral-800 text-slate-500 dark:text-neutral-400 rounded-lg px-2 py-1.5 outline-none border border-slate-300 dark:border-neutral-700 focus:border-blue-600 transition-colors"
           />
         </div>
       </div>
 
       {/* Task list */}
       {displayTasks.length === 0 ? (
-        <div className="py-8 text-center text-sm text-gray-400 dark:text-neutral-600">
+        <div className="py-8 text-center text-sm text-slate-400 dark:text-neutral-600">
           No tasks yet. Add one above to get started.
         </div>
       ) : (
@@ -289,7 +289,7 @@ export function TaskList({ goal, dispatch }: TaskListProps) {
 
       {/* Keyboard hint */}
       {goal.tasks.length > 0 && (
-        <p className="mt-3 text-[10px] text-gray-300 dark:text-neutral-700 text-center">
+        <p className="mt-3 text-[10px] text-slate-300 dark:text-neutral-700 text-center">
           Press N to add a task · Escape to cancel
         </p>
       )}

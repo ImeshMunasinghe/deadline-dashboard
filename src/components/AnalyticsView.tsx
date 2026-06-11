@@ -87,23 +87,23 @@ export function AnalyticsView({ state, dispatch }: AnalyticsViewProps) {
 
   return (
     <div className="p-6 max-w-5xl w-full mx-auto">
-      <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-neutral-100">Analytics</h2>
+      <h2 className="text-2xl font-bold mb-6 text-slate-900 dark:text-neutral-100">Analytics</h2>
       
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-        <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-xl p-6 flex flex-col justify-center">
-          <p className="text-xs text-gray-400 dark:text-neutral-500 uppercase tracking-widest mb-1">Most Productive Day (Last 4 Weeks)</p>
+        <div className="bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-xl p-6 flex flex-col justify-center">
+          <p className="text-xs text-slate-400 dark:text-neutral-500 uppercase tracking-widest mb-1">Most Productive Day (Last 4 Weeks)</p>
           <p className="text-2xl font-bold text-blue-500">{mostProductiveDay}</p>
         </div>
-        <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-xl p-6 flex flex-col justify-center">
-          <p className="text-xs text-gray-400 dark:text-neutral-500 uppercase tracking-widest mb-1">Avg Time-to-Completion</p>
+        <div className="bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-xl p-6 flex flex-col justify-center">
+          <p className="text-xs text-slate-400 dark:text-neutral-500 uppercase tracking-widest mb-1">Avg Time-to-Completion</p>
           <p className="text-2xl font-bold text-emerald-400">{avgTimeToCompletion}</p>
         </div>
       </div>
 
       {/* Chart */}
-      <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-xl p-6 mb-6">
-        <h3 className="text-sm font-medium text-gray-700 dark:text-neutral-300 mb-6">Tasks Completed per Day (Last 4 Weeks)</h3>
+      <div className="bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-xl p-6 mb-6">
+        <h3 className="text-sm font-medium text-slate-700 dark:text-neutral-300 mb-6">Tasks Completed per Day (Last 4 Weeks)</h3>
         <div className="h-64 w-full">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
@@ -138,11 +138,11 @@ export function AnalyticsView({ state, dispatch }: AnalyticsViewProps) {
       </div>
 
       {/* Reflections Journal */}
-      <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-xl p-6">
+      <div className="bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-xl p-6">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h3 className="text-sm font-medium text-gray-800 dark:text-neutral-200">Daily Reflections</h3>
-            <p className="text-xs text-gray-400 dark:text-neutral-500 mt-0.5">Your end-of-day journal entries</p>
+            <h3 className="text-sm font-medium text-slate-800 dark:text-neutral-200">Daily Reflections</h3>
+            <p className="text-xs text-slate-400 dark:text-neutral-500 mt-0.5">Your end-of-day journal entries</p>
           </div>
           <button
             onClick={() => {
@@ -163,7 +163,7 @@ export function AnalyticsView({ state, dispatch }: AnalyticsViewProps) {
         </div>
 
         {state.reflections.length === 0 ? (
-          <div className="text-center py-8 text-gray-400 dark:text-neutral-500">
+          <div className="text-center py-8 text-slate-400 dark:text-neutral-500">
             <p className="text-sm">No reflections yet.</p>
             <p className="text-xs mt-1">Reflections appear here after 5 PM each day, or click the button above.</p>
           </div>
@@ -173,11 +173,11 @@ export function AnalyticsView({ state, dispatch }: AnalyticsViewProps) {
               .filter(r => r.date !== '__trigger__' && r.content)
               .sort((a, b) => b.date.localeCompare(a.date))
               .map((r, i) => (
-                <div key={i} className="border border-gray-100 dark:border-neutral-800 rounded-lg p-4">
+                <div key={i} className="border border-slate-100 dark:border-neutral-800 rounded-lg p-4">
                   <p className="text-xs font-semibold text-blue-500 mb-2">
                     {new Date(r.date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                   </p>
-                  <p className="text-sm text-gray-700 dark:text-neutral-300 leading-relaxed whitespace-pre-wrap">{r.content}</p>
+                  <p className="text-sm text-slate-700 dark:text-neutral-300 leading-relaxed whitespace-pre-wrap">{r.content}</p>
                 </div>
               ))
             }

@@ -32,20 +32,20 @@ export function TodayView({ state, dispatch }: TodayViewProps) {
 
   return (
     <div className="p-6 max-w-5xl w-full mx-auto">
-      <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-neutral-100">Today's Focus</h2>
+      <h2 className="text-2xl font-bold mb-6 text-slate-900 dark:text-neutral-100">Today's Focus</h2>
       
       {/* Daily Capacity Meter */}
-      <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-xl p-4 mb-6">
+      <div className="bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-xl p-4 mb-6">
         <div className="flex justify-between items-end mb-2">
           <div>
-            <h3 className="text-sm font-medium text-gray-700 dark:text-neutral-300">Daily Capacity</h3>
-            <p className="text-xs text-gray-400 dark:text-neutral-500">6 hours max recommended</p>
+            <h3 className="text-sm font-medium text-slate-700 dark:text-neutral-300">Daily Capacity</h3>
+            <p className="text-xs text-slate-400 dark:text-neutral-500">6 hours max recommended</p>
           </div>
-          <div className={`text-sm font-semibold ${isOverCapacity ? 'text-red-400' : 'text-gray-700 dark:text-neutral-300'}`}>
+          <div className={`text-sm font-semibold ${isOverCapacity ? 'text-red-400' : 'text-slate-700 dark:text-neutral-300'}`}>
             {Math.floor(totalMinutes / 60)}h {totalMinutes % 60}m / 6h
           </div>
         </div>
-        <div className="h-2 w-full bg-gray-100 dark:bg-neutral-800 rounded-full overflow-hidden">
+        <div className="h-2 w-full bg-slate-100 dark:bg-neutral-800 rounded-full overflow-hidden">
           <div 
             className={`h-full transition-all ${isOverCapacity ? 'bg-red-500' : 'bg-blue-600'}`}
             style={{ width: `${capacityPercent}%` }}
@@ -59,16 +59,16 @@ export function TodayView({ state, dispatch }: TodayViewProps) {
       </div>
 
       {/* Task List */}
-      <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-xl p-6">
+      <div className="bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-xl p-6">
         {todayTasks.length === 0 ? (
-          <div className="text-center py-10 text-gray-400 dark:text-neutral-500">
+          <div className="text-center py-10 text-slate-400 dark:text-neutral-500">
             <p>No tasks due today. Enjoy your day!</p>
           </div>
         ) : (
           <ul className="flex flex-col gap-3">
             {todayTasks.map((item) => (
               <div key={item.task.id} className="flex flex-col gap-1">
-                <span className="text-[10px] text-gray-400 dark:text-neutral-500 uppercase tracking-wider ml-1">
+                <span className="text-[10px] text-slate-400 dark:text-neutral-500 uppercase tracking-wider ml-1">
                   From: {item.goalTitle}
                 </span>
                 <TaskItem 

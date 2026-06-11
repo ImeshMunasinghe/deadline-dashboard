@@ -106,7 +106,7 @@ export default function App() {
   }, [activeGoal]);
 
   return (
-    <div className="flex min-h-screen bg-gray-50 dark:bg-neutral-950 text-gray-800 dark:text-neutral-200 font-sans">
+    <div className="flex min-h-screen bg-slate-50 dark:bg-neutral-950 text-slate-800 dark:text-neutral-200 font-sans">
       {/* ── Sidebar */}
       <Sidebar state={state} dispatch={dispatch} />
 

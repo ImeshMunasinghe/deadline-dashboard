@@ -47,19 +47,19 @@ export function DailyReflection({ state, dispatch }: DailyReflectionProps) {
 
   return (
     <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-      <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 rounded-2xl shadow-2xl w-full max-w-lg p-6">
+      <div className="bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-700 rounded-2xl shadow-2xl w-full max-w-lg p-6">
         <div className="flex items-start gap-3 mb-4">
           <div className="w-8 h-8 rounded-full bg-blue-600/10 flex items-center justify-center shrink-0">
             <span className="text-lg">📝</span>
           </div>
           <div>
-            <h2 className="text-lg font-bold text-gray-900 dark:text-neutral-100">Daily Reflection</h2>
-            <p className="text-xs text-gray-500 dark:text-neutral-400 mt-0.5">
+            <h2 className="text-lg font-bold text-slate-900 dark:text-neutral-100">Daily Reflection</h2>
+            <p className="text-xs text-slate-500 dark:text-neutral-400 mt-0.5">
               {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
             </p>
           </div>
         </div>
-        <p className="text-sm text-gray-600 dark:text-neutral-400 mb-3">
+        <p className="text-sm text-slate-600 dark:text-neutral-400 mb-3">
           What did you accomplish today? What's blocking you?
         </p>
         <textarea
@@ -68,16 +68,16 @@ export function DailyReflection({ state, dispatch }: DailyReflectionProps) {
           onChange={(e) => setContent(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter' && e.ctrlKey) handleSave(); }}
           placeholder="Today I finished… I'm still stuck on… Tomorrow I'll…"
-          className="w-full h-32 bg-gray-50 dark:bg-neutral-800 text-gray-800 dark:text-neutral-200
-            placeholder-gray-400 dark:placeholder-neutral-500 rounded-xl p-3 outline-none
-            border border-gray-200 dark:border-neutral-700 focus:border-blue-500 transition-colors resize-none mb-4 text-sm"
+          className="w-full h-32 bg-slate-50 dark:bg-neutral-800 text-slate-800 dark:text-neutral-200
+            placeholder-slate-400 dark:placeholder-neutral-500 rounded-xl p-3 outline-none
+            border border-slate-200 dark:border-neutral-700 focus:border-blue-500 transition-colors resize-none mb-4 text-sm"
         />
         <div className="flex justify-between items-center">
-          <span className="text-xs text-gray-400 dark:text-neutral-600">Ctrl+Enter to save</span>
+          <span className="text-xs text-slate-400 dark:text-neutral-600">Ctrl+Enter to save</span>
           <div className="flex gap-2">
             <button
               onClick={() => setIsOpen(false)}
-              className="px-4 py-2 rounded-lg text-sm font-medium text-gray-500 dark:text-neutral-400 hover:text-gray-800 dark:hover:text-neutral-200 transition-colors"
+              className="px-4 py-2 rounded-lg text-sm font-medium text-slate-500 dark:text-neutral-400 hover:text-slate-800 dark:hover:text-neutral-200 transition-colors"
             >
               Skip
             </button>

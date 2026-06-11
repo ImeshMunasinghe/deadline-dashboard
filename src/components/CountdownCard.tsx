@@ -58,10 +58,10 @@ function ProgressRing({ percent, isExpired }: { percent: number; isExpired?: boo
 function CountUnit({ value, label }: { value: number; label: string }) {
   return (
     <div className="flex flex-col items-center min-w-[48px]">
-      <span className="text-3xl font-mono font-bold text-gray-900 dark:text-neutral-100 tabular-nums leading-none">
+      <span className="text-3xl font-mono font-bold text-slate-900 dark:text-neutral-100 tabular-nums leading-none">
         {String(value).padStart(2, '0')}
       </span>
-      <span className="text-[10px] text-gray-400 dark:text-neutral-500 uppercase tracking-widest mt-1">
+      <span className="text-[10px] text-slate-400 dark:text-neutral-500 uppercase tracking-widest mt-1">
         {label}
       </span>
     </div>
@@ -108,7 +108,7 @@ export function CountdownCard({ goal, dispatch }: CountdownCardProps) {
     : 'text-blue-500';
 
   return (
-    <div className="relative bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-2xl p-6 overflow-hidden">
+    <div className="relative bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-2xl p-6 overflow-hidden">
       {/* Subtle ambient glow */}
       <div className="absolute inset-0 bg-gradient-to-br from-blue-900/10 to-transparent pointer-events-none rounded-2xl" />
 
@@ -122,21 +122,21 @@ export function CountdownCard({ goal, dispatch }: CountdownCardProps) {
                 type="text"
                 value={editTitle}
                 onChange={(e) => setEditTitle(e.target.value)}
-                className="text-lg font-semibold bg-gray-100 dark:bg-neutral-800 text-gray-900 dark:text-neutral-100 rounded px-2 py-1 outline-none border border-blue-600 w-full"
+                className="text-lg font-semibold bg-slate-100 dark:bg-neutral-800 text-slate-900 dark:text-neutral-100 rounded px-2 py-1 outline-none border border-blue-600 w-full"
               />
               <input
                 type="date"
                 value={editDate}
                 onChange={(e) => setEditDate(e.target.value)}
-                className="text-sm bg-gray-100 dark:bg-neutral-800 text-gray-700 dark:text-neutral-300 rounded px-2 py-1 outline-none border border-gray-300 dark:border-neutral-700 focus:border-blue-600 w-full"
+                className="text-sm bg-slate-100 dark:bg-neutral-800 text-slate-700 dark:text-neutral-300 rounded px-2 py-1 outline-none border border-slate-300 dark:border-neutral-700 focus:border-blue-600 w-full"
               />
             </div>
           ) : (
             <>
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-neutral-100 truncate">
+              <h2 className="text-lg font-semibold text-slate-900 dark:text-neutral-100 truncate">
                 {goal.title}
               </h2>
-              <p className="text-xs text-gray-400 dark:text-neutral-500 mt-0.5">
+              <p className="text-xs text-slate-400 dark:text-neutral-500 mt-0.5">
                 Target: {new Date(goal.targetDate).toLocaleDateString('en-US', {
                   weekday: 'short',
                   month: 'long',
@@ -154,14 +154,14 @@ export function CountdownCard({ goal, dispatch }: CountdownCardProps) {
               <button
                 onClick={saveEdit}
                 aria-label="Save changes"
-                className="p-1.5 rounded-lg text-emerald-400 hover:bg-gray-100 dark:bg-neutral-800 transition-colors"
+                className="p-1.5 rounded-lg text-emerald-400 hover:bg-slate-100 dark:bg-neutral-800 transition-colors"
               >
                 <Check size={14} />
               </button>
               <button
                 onClick={cancelEdit}
                 aria-label="Cancel editing"
-                className="p-1.5 rounded-lg text-gray-400 dark:text-neutral-500 hover:bg-gray-100 dark:bg-neutral-800 transition-colors"
+                className="p-1.5 rounded-lg text-slate-400 dark:text-neutral-500 hover:bg-slate-100 dark:bg-neutral-800 transition-colors"
               >
                 <X size={14} />
               </button>
@@ -175,7 +175,7 @@ export function CountdownCard({ goal, dispatch }: CountdownCardProps) {
                   setTimeout(() => setCopied(false), 2000);
                 }}
                 aria-label="Save as Template"
-                className="p-1.5 rounded-lg text-gray-400 dark:text-neutral-500 hover:text-emerald-400 hover:bg-gray-100 dark:bg-neutral-800 transition-colors"
+                className="p-1.5 rounded-lg text-slate-400 dark:text-neutral-500 hover:text-emerald-400 hover:bg-slate-100 dark:bg-neutral-800 transition-colors"
                 title="Save as Template"
               >
                 <Copy size={14} />
@@ -183,14 +183,14 @@ export function CountdownCard({ goal, dispatch }: CountdownCardProps) {
               <button
                 onClick={handleShare}
                 aria-label="Copy shareable link"
-                className="p-1.5 rounded-lg text-gray-400 dark:text-neutral-500 hover:text-blue-500 hover:bg-gray-100 dark:bg-neutral-800 transition-colors"
+                className="p-1.5 rounded-lg text-slate-400 dark:text-neutral-500 hover:text-blue-500 hover:bg-slate-100 dark:bg-neutral-800 transition-colors"
               >
                 <Share2 size={14} />
               </button>
               <button
                 onClick={() => setEditing(true)}
                 aria-label="Edit goal"
-                className="p-1.5 rounded-lg text-gray-400 dark:text-neutral-500 hover:text-blue-500 hover:bg-gray-100 dark:bg-neutral-800 transition-colors"
+                className="p-1.5 rounded-lg text-slate-400 dark:text-neutral-500 hover:text-blue-500 hover:bg-slate-100 dark:bg-neutral-800 transition-colors"
               >
                 <Edit2 size={14} />
               </button>
@@ -217,7 +217,7 @@ export function CountdownCard({ goal, dispatch }: CountdownCardProps) {
             <span className={`text-sm font-bold ${urgencyClass}`}>
               {countdown.isExpired ? '100%' : `${Math.round(countdown.progressPercent)}%`}
             </span>
-            <span className="text-[9px] text-gray-400 dark:text-neutral-600 tracking-widest uppercase">
+            <span className="text-[9px] text-slate-400 dark:text-neutral-600 tracking-widest uppercase">
               {countdown.isExpired ? 'done' : 'elapsed'}
             </span>
           </div>
@@ -229,7 +229,7 @@ export function CountdownCard({ goal, dispatch }: CountdownCardProps) {
             <div className={`text-xl font-bold ${urgencyClass}`}>
               Goal Achieved
             </div>
-            <p className="text-xs text-gray-400 dark:text-neutral-500 mt-1">
+            <p className="text-xs text-slate-400 dark:text-neutral-500 mt-1">
               Deadline has passed
             </p>
           </div>
@@ -237,11 +237,11 @@ export function CountdownCard({ goal, dispatch }: CountdownCardProps) {
           /* Units */
           <div className="flex items-center gap-4">
             <CountUnit value={countdown.days} label="days" />
-            <span className="text-2xl text-gray-300 dark:text-neutral-700 font-mono">:</span>
+            <span className="text-2xl text-slate-300 dark:text-neutral-700 font-mono">:</span>
             <CountUnit value={countdown.hours} label="hrs" />
-            <span className="text-2xl text-gray-300 dark:text-neutral-700 font-mono">:</span>
+            <span className="text-2xl text-slate-300 dark:text-neutral-700 font-mono">:</span>
             <CountUnit value={countdown.minutes} label="min" />
-            <span className="text-2xl text-gray-300 dark:text-neutral-700 font-mono">:</span>
+            <span className="text-2xl text-slate-300 dark:text-neutral-700 font-mono">:</span>
             <CountUnit value={countdown.seconds} label="sec" />
           </div>
         )}

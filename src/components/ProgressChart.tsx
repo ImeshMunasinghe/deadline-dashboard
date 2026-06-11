@@ -48,8 +48,8 @@ function buildBurnDownData(goal: Goal) {
 function BurnDownTooltip({ active, payload, label }: { active?: boolean; payload?: Array<{ value: number; name: string }>; label?: string }) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-gray-100 dark:bg-neutral-800 border border-gray-300 dark:border-neutral-700 rounded-lg px-3 py-2 text-xs shadow-xl">
-      <p className="text-gray-500 dark:text-neutral-400 mb-1">{label}</p>
+    <div className="bg-slate-100 dark:bg-neutral-800 border border-slate-300 dark:border-neutral-700 rounded-lg px-3 py-2 text-xs shadow-xl">
+      <p className="text-slate-500 dark:text-neutral-400 mb-1">{label}</p>
       {payload.map((p, i) => (
         <p key={i} className={p.name === 'remaining' ? 'text-blue-500' : 'text-emerald-400'}>
           {p.name === 'remaining' ? 'Remaining' : 'Completed'}: {p.value}
@@ -81,19 +81,19 @@ export function ProgressChart({ goal }: ProgressChartProps) {
   const burnDownData = buildBurnDownData(goal);
 
   return (
-    <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-2xl p-6">
+    <div className="bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-2xl p-6">
       {/* Tab header */}
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-xs font-medium tracking-widest text-gray-400 dark:text-neutral-500 uppercase">
+        <h3 className="text-xs font-medium tracking-widest text-slate-400 dark:text-neutral-500 uppercase">
           Progress
         </h3>
-        <div className="flex gap-1 bg-gray-100 dark:bg-neutral-800 rounded-lg p-0.5">
+        <div className="flex gap-1 bg-slate-100 dark:bg-neutral-800 rounded-lg p-0.5">
           <button
             onClick={() => setActiveTab('donut')}
             className={`text-[10px] px-2.5 py-1 rounded-md font-medium transition-colors ${
               activeTab === 'donut'
-                ? 'bg-gray-200 dark:bg-neutral-700 text-gray-800 dark:text-neutral-200'
-                : 'text-gray-400 dark:text-neutral-500 hover:text-gray-700 dark:text-neutral-300'
+                ? 'bg-slate-200 dark:bg-neutral-700 text-slate-800 dark:text-neutral-200'
+                : 'text-slate-400 dark:text-neutral-500 hover:text-slate-700 dark:text-neutral-300'
             }`}
           >
             Overview
@@ -102,8 +102,8 @@ export function ProgressChart({ goal }: ProgressChartProps) {
             onClick={() => setActiveTab('burndown')}
             className={`text-[10px] px-2.5 py-1 rounded-md font-medium transition-colors ${
               activeTab === 'burndown'
-                ? 'bg-gray-200 dark:bg-neutral-700 text-gray-800 dark:text-neutral-200'
-                : 'text-gray-400 dark:text-neutral-500 hover:text-gray-700 dark:text-neutral-300'
+                ? 'bg-slate-200 dark:bg-neutral-700 text-slate-800 dark:text-neutral-200'
+                : 'text-slate-400 dark:text-neutral-500 hover:text-slate-700 dark:text-neutral-300'
             }`}
           >
             Burn-Down
@@ -113,8 +113,8 @@ export function ProgressChart({ goal }: ProgressChartProps) {
 
       {stats.total === 0 ? (
         <div className="flex flex-col items-center justify-center py-8 text-center gap-2">
-          <p className="text-sm text-gray-400 dark:text-neutral-600">No tasks yet</p>
-          <p className="text-xs text-gray-300 dark:text-neutral-700">Add tasks to see your progress here.</p>
+          <p className="text-sm text-slate-400 dark:text-neutral-600">No tasks yet</p>
+          <p className="text-xs text-slate-300 dark:text-neutral-700">Add tasks to see your progress here.</p>
         </div>
       ) : activeTab === 'donut' ? (
         <>
@@ -142,7 +142,7 @@ export function ProgressChart({ goal }: ProgressChartProps) {
               </ResponsiveContainer>
               {/* Center label */}
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <span className="text-lg font-bold text-gray-900 dark:text-neutral-100 leading-none">
+                <span className="text-lg font-bold text-slate-900 dark:text-neutral-100 leading-none">
                   {stats.percent}%
                 </span>
               </div>
@@ -151,22 +151,22 @@ export function ProgressChart({ goal }: ProgressChartProps) {
             <div className="flex flex-col gap-2 flex-1">
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-blue-600 shrink-0" />
-                <span className="text-xs text-gray-500 dark:text-neutral-400">{stats.completed} completed</span>
+                <span className="text-xs text-slate-500 dark:text-neutral-400">{stats.completed} completed</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-gray-200 dark:bg-neutral-700 shrink-0" />
-                <span className="text-xs text-gray-500 dark:text-neutral-400">{stats.remaining} remaining</span>
+                <span className="w-2 h-2 rounded-full bg-slate-200 dark:bg-neutral-700 shrink-0" />
+                <span className="text-xs text-slate-500 dark:text-neutral-400">{stats.remaining} remaining</span>
               </div>
               <div className="flex items-center gap-2 mt-1">
-                <span className="text-xs text-gray-400 dark:text-neutral-500">{stats.total} total</span>
+                <span className="text-xs text-slate-400 dark:text-neutral-500">{stats.total} total</span>
               </div>
             </div>
           </div>
 
           {/* Priority breakdown bars */}
           {stats.total > 0 && (
-            <div className="flex flex-col gap-2 mt-2 pt-4 border-t border-gray-200 dark:border-neutral-800">
-              <p className="text-[10px] text-gray-400 dark:text-neutral-600 uppercase tracking-widest mb-1">By Priority</p>
+            <div className="flex flex-col gap-2 mt-2 pt-4 border-t border-slate-200 dark:border-neutral-800">
+              <p className="text-[10px] text-slate-400 dark:text-neutral-600 uppercase tracking-widest mb-1">By Priority</p>
               {[
                 { label: 'High',   done: highDone, total: highCount, color: 'bg-red-500' },
                 { label: 'Medium', done: medDone,  total: medCount,  color: 'bg-amber-500' },
@@ -175,14 +175,14 @@ export function ProgressChart({ goal }: ProgressChartProps) {
                 .filter((p) => p.total > 0)
                 .map((p) => (
                   <div key={p.label} className="flex items-center gap-2">
-                    <span className="text-[10px] text-gray-400 dark:text-neutral-500 w-10 shrink-0">{p.label}</span>
-                    <div className="flex-1 h-1 rounded-full bg-gray-100 dark:bg-neutral-800 overflow-hidden">
+                    <span className="text-[10px] text-slate-400 dark:text-neutral-500 w-10 shrink-0">{p.label}</span>
+                    <div className="flex-1 h-1 rounded-full bg-slate-100 dark:bg-neutral-800 overflow-hidden">
                       <div
                         className={`h-full rounded-full ${p.color} transition-all`}
                         style={{ width: `${(p.done / p.total) * 100}%` }}
                       />
                     </div>
-                    <span className="text-[10px] text-gray-400 dark:text-neutral-600 w-8 text-right shrink-0">
+                    <span className="text-[10px] text-slate-400 dark:text-neutral-600 w-8 text-right shrink-0">
                       {p.done}/{p.total}
                     </span>
                   </div>
@@ -193,7 +193,7 @@ export function ProgressChart({ goal }: ProgressChartProps) {
       ) : (
         /* ── Burn-Down chart ── */
         <div>
-          <p className="text-[10px] text-gray-400 dark:text-neutral-600 mb-3">
+          <p className="text-[10px] text-slate-400 dark:text-neutral-600 mb-3">
             Remaining tasks over the past 7 days
           </p>
           <ResponsiveContainer width="100%" height={140}>
@@ -245,11 +245,11 @@ export function ProgressChart({ goal }: ProgressChartProps) {
           <div className="flex items-center gap-4 mt-3 justify-center">
             <div className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-blue-600" />
-              <span className="text-[10px] text-gray-400 dark:text-neutral-500">Remaining</span>
+              <span className="text-[10px] text-slate-400 dark:text-neutral-500">Remaining</span>
             </div>
             <div className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-emerald-500" />
-              <span className="text-[10px] text-gray-400 dark:text-neutral-500">Completed</span>
+              <span className="text-[10px] text-slate-400 dark:text-neutral-500">Completed</span>
             </div>
           </div>
         </div>

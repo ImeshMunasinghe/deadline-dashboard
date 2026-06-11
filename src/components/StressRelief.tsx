@@ -31,7 +31,7 @@ export function StressRelief() {
 
   // Determine breathing phase
   let phaseText = 'Click Start to Begin';
-  let circleClass = 'scale-75 opacity-40 bg-gray-100 dark:bg-neutral-800';
+  let circleClass = 'scale-75 opacity-40 bg-slate-100 dark:bg-neutral-800';
   if (breathingActive) {
     if (breathCycle < 4) {
       phaseText = 'Breathe In';
@@ -44,7 +44,7 @@ export function StressRelief() {
       circleClass = 'scale-75 opacity-70 bg-sky-500/85 shadow-[0_0_15px_rgba(14,165,233,0.4)]';
     } else {
       phaseText = 'Hold';
-      circleClass = 'scale-75 opacity-40 bg-gray-200 dark:bg-neutral-700';
+      circleClass = 'scale-75 opacity-40 bg-slate-200 dark:bg-neutral-700';
     }
   }
 
@@ -221,39 +221,39 @@ export function StressRelief() {
   };
 
   return (
-    <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-2xl transition-all overflow-hidden">
+    <div className="bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-2xl transition-all overflow-hidden">
       {/* Header bar (always visible) */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full flex items-center justify-between p-4 text-left outline-none hover:bg-gray-100 dark:bg-neutral-800/55 transition-colors"
+        className="w-full flex items-center justify-between p-4 text-left outline-none hover:bg-slate-100 dark:bg-neutral-800/55 transition-colors"
       >
         <div className="flex items-center gap-2">
           <Compass size={14} className="text-blue-500" />
-          <h3 className="text-xs font-medium tracking-widest text-gray-500 dark:text-neutral-400 uppercase">
+          <h3 className="text-xs font-medium tracking-widest text-slate-500 dark:text-neutral-400 uppercase">
             Mindfulness & Chill
           </h3>
         </div>
-        <ChevronDown size={14} className={`text-gray-400 dark:text-neutral-500 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
+        <ChevronDown size={14} className={`text-slate-400 dark:text-neutral-500 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
       </button>
 
       {/* Expanded Content */}
       {isExpanded && (
-        <div className="p-4 pt-0 flex flex-col gap-5 border-t border-gray-200 dark:border-neutral-800/40">
+        <div className="p-4 pt-0 flex flex-col gap-5 border-t border-slate-200 dark:border-neutral-800/40">
           {/* Breathing Coach */}
-          <div className="flex flex-col items-center gap-4 bg-gray-50 dark:bg-neutral-950/40 border border-gray-200 dark:border-neutral-800/40 rounded-xl p-4">
+          <div className="flex flex-col items-center gap-4 bg-slate-50 dark:bg-neutral-950/40 border border-slate-200 dark:border-neutral-800/40 rounded-xl p-4">
             <div className="relative w-24 h-24 flex items-center justify-center">
               <div
                 className={`w-16 h-16 rounded-full transition-all duration-[1000ms] ease-in-out ${circleClass}`}
               />
               {breathingActive && (
-                <span className="absolute text-[10px] font-bold text-gray-800 dark:text-neutral-200 font-mono tracking-wider">
+                <span className="absolute text-[10px] font-bold text-slate-800 dark:text-neutral-200 font-mono tracking-wider">
                   {4 - (breathCycle % 4)}s
                 </span>
               )}
             </div>
 
             <div className="text-center">
-              <p className="text-xs font-medium text-gray-800 dark:text-neutral-200 mb-1">{phaseText}</p>
+              <p className="text-xs font-medium text-slate-800 dark:text-neutral-200 mb-1">{phaseText}</p>
               <p className="text-[10px] text-neutral-550 max-w-[200px]">
                 Box breathing helps restore calm. Equal parts inhale, hold, exhale, hold.
               </p>
@@ -263,7 +263,7 @@ export function StressRelief() {
               onClick={() => setBreathingActive(!breathingActive)}
               className={`flex items-center gap-1.5 text-[10px] rounded-lg px-3 py-1.5 transition-colors font-medium ${
                 breathingActive
-                  ? 'bg-gray-100 dark:bg-neutral-800 hover:bg-gray-200 dark:bg-neutral-700 text-gray-500 dark:text-neutral-400 hover:text-gray-800 dark:text-neutral-200'
+                  ? 'bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 dark:bg-neutral-700 text-slate-500 dark:text-neutral-400 hover:text-slate-800 dark:text-neutral-200'
                   : 'bg-blue-600 hover:bg-blue-600 text-white'
               }`}
             >
@@ -275,7 +275,7 @@ export function StressRelief() {
           {/* Ambient Soundscape Synthesizer */}
           <div className="flex flex-col gap-3">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold tracking-widest text-gray-400 dark:text-neutral-500 uppercase">
+              <span className="text-[10px] font-bold tracking-widest text-slate-400 dark:text-neutral-500 uppercase">
                 Focus Soundscapes
               </span>
               {activeSound !== 'none' && (
@@ -302,7 +302,7 @@ export function StressRelief() {
                     className={`flex flex-col items-center justify-center gap-1 p-2 rounded-lg border text-center transition-all ${
                       isActive
                         ? 'bg-blue-900/30 border-blue-700 text-blue-500'
-                        : 'bg-gray-50 dark:bg-neutral-950/30 border-gray-200 dark:border-neutral-800 text-gray-400 dark:text-neutral-500 hover:text-gray-700 dark:text-neutral-300 hover:bg-gray-100 dark:bg-neutral-800/50'
+                        : 'bg-slate-50 dark:bg-neutral-950/30 border-slate-200 dark:border-neutral-800 text-slate-400 dark:text-neutral-500 hover:text-slate-700 dark:text-neutral-300 hover:bg-slate-100 dark:bg-neutral-800/50'
                     }`}
                   >
                     {isActive ? <Square size={12} /> : <Play size={12} />}
@@ -315,7 +315,7 @@ export function StressRelief() {
             {/* Volume slider */}
             {activeSound !== 'none' && (
               <div className="flex items-center gap-2 mt-1 px-1">
-                <Volume2 size={12} className="text-gray-400 dark:text-neutral-500" />
+                <Volume2 size={12} className="text-slate-400 dark:text-neutral-500" />
                 <input
                   type="range"
                   min="0"
@@ -323,7 +323,7 @@ export function StressRelief() {
                   step="0.05"
                   value={volume}
                   onChange={(e) => setVolume(parseFloat(e.target.value))}
-                  className="flex-1 h-1 bg-gray-100 dark:bg-neutral-800 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                  className="flex-1 h-1 bg-slate-100 dark:bg-neutral-800 rounded-lg appearance-none cursor-pointer accent-blue-600"
                 />
               </div>
             )}

@@ -78,10 +78,10 @@ export function PomodoroTimer() {
             shadow-xl rounded-xl px-4 py-3 flex items-center gap-3"
         >
           <div className="w-2 h-2 rounded-full bg-blue-500 shrink-0" />
-          <p className="text-sm font-medium text-gray-800 dark:text-neutral-100">{toast}</p>
+          <p className="text-sm font-medium text-slate-800 dark:text-neutral-100">{toast}</p>
           <button
             onClick={() => setToast(null)}
-            className="ml-auto text-gray-400 hover:text-gray-600 dark:text-neutral-500 dark:hover:text-neutral-300 transition-colors"
+            className="ml-auto text-slate-400 hover:text-slate-600 dark:text-neutral-500 dark:hover:text-neutral-300 transition-colors"
           >
             ×
           </button>
@@ -96,8 +96,8 @@ export function PomodoroTimer() {
         {/* Tooltip — shown above circle on hover */}
         <div className="absolute -top-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100
           transition-opacity duration-200 whitespace-nowrap
-          bg-gray-100 dark:bg-neutral-800 border border-gray-300 dark:border-neutral-700
-          text-[10px] text-gray-500 dark:text-neutral-400 px-2 py-1 rounded-lg shadow-lg pointer-events-none">
+          bg-slate-100 dark:bg-neutral-800 border border-slate-300 dark:border-neutral-700
+          text-[10px] text-slate-500 dark:text-neutral-400 px-2 py-1 rounded-lg shadow-lg pointer-events-none">
           Space to toggle
         </div>
 
@@ -149,7 +149,7 @@ export function PomodoroTimer() {
             <span className={`text-sm font-mono font-bold ${phaseTextClr} tabular-nums leading-none`}>
               {String(mins).padStart(2, '0')}:{String(secs).padStart(2, '0')}
             </span>
-            <span className="text-[8px] text-gray-400 dark:text-neutral-600 uppercase tracking-widest mt-0.5">
+            <span className="text-[8px] text-slate-400 dark:text-neutral-600 uppercase tracking-widest mt-0.5">
               {pomo.phase === 'focus' ? 'focus' : 'break'}
             </span>
           </div>
@@ -160,8 +160,8 @@ export function PomodoroTimer() {
           <button
             onClick={toggle}
             aria-label={pomo.running ? 'Pause Pomodoro' : 'Start Pomodoro'}
-            className="w-8 h-8 rounded-full bg-gray-100 dark:bg-neutral-800 border border-gray-300 dark:border-neutral-700
-              hover:bg-gray-200 dark:hover:bg-neutral-700 text-gray-700 dark:text-neutral-300
+            className="w-8 h-8 rounded-full bg-slate-100 dark:bg-neutral-800 border border-slate-300 dark:border-neutral-700
+              hover:bg-slate-200 dark:hover:bg-neutral-700 text-slate-700 dark:text-neutral-300
               flex items-center justify-center shadow-lg transition-colors"
           >
             {pomo.running ? <Pause size={12} /> : <Play size={12} />}
@@ -169,9 +169,9 @@ export function PomodoroTimer() {
           <button
             onClick={reset}
             aria-label="Reset Pomodoro"
-            className="w-8 h-8 rounded-full bg-gray-100 dark:bg-neutral-800 border border-gray-300 dark:border-neutral-700
-              hover:bg-gray-200 dark:hover:bg-neutral-700 text-gray-400 dark:text-neutral-500
-              hover:text-gray-700 dark:hover:text-neutral-300 flex items-center justify-center shadow-lg transition-colors"
+            className="w-8 h-8 rounded-full bg-slate-100 dark:bg-neutral-800 border border-slate-300 dark:border-neutral-700
+              hover:bg-slate-200 dark:hover:bg-neutral-700 text-slate-400 dark:text-neutral-500
+              hover:text-slate-700 dark:hover:text-neutral-300 flex items-center justify-center shadow-lg transition-colors"
           >
             <RotateCcw size={11} />
           </button>
@@ -182,9 +182,9 @@ export function PomodoroTimer() {
               }
             }}
             aria-label="Enable notifications"
-            className="w-8 h-8 rounded-full bg-gray-100 dark:bg-neutral-800 border border-gray-300 dark:border-neutral-700
-              hover:bg-gray-200 dark:hover:bg-neutral-700 text-gray-400 dark:text-neutral-500
-              hover:text-gray-700 dark:hover:text-neutral-300 flex items-center justify-center shadow-lg transition-colors"
+            className="w-8 h-8 rounded-full bg-slate-100 dark:bg-neutral-800 border border-slate-300 dark:border-neutral-700
+              hover:bg-slate-200 dark:hover:bg-neutral-700 text-slate-400 dark:text-neutral-500
+              hover:text-slate-700 dark:hover:text-neutral-300 flex items-center justify-center shadow-lg transition-colors"
             title="Enable focus notifications"
           >
             <Timer size={11} />

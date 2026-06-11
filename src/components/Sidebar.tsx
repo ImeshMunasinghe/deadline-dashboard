@@ -63,8 +63,8 @@ export function BottomToolbar({ state, dispatch }: { state: AppState; dispatch: 
         onClick={() => setIsDark((d) => !d)}
         title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
         className="w-9 h-9 flex items-center justify-center rounded-xl
-          bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700
-          text-gray-500 dark:text-neutral-400 hover:text-blue-600 dark:hover:text-blue-400
+          bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-700
+          text-slate-500 dark:text-neutral-400 hover:text-blue-600 dark:hover:text-blue-400
           shadow-md hover:shadow-lg transition-all"
       >
         {isDark ? <Sun size={15} /> : <Moon size={15} />}
@@ -73,8 +73,8 @@ export function BottomToolbar({ state, dispatch }: { state: AppState; dispatch: 
         onClick={() => exportStateAsJSON(state)}
         title="Export data"
         className="w-9 h-9 flex items-center justify-center rounded-xl
-          bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700
-          text-gray-500 dark:text-neutral-400 hover:text-blue-600 dark:hover:text-blue-400
+          bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-700
+          text-slate-500 dark:text-neutral-400 hover:text-blue-600 dark:hover:text-blue-400
           shadow-md hover:shadow-lg transition-all"
       >
         <Download size={15} />
@@ -83,8 +83,8 @@ export function BottomToolbar({ state, dispatch }: { state: AppState; dispatch: 
         onClick={handleImport}
         title="Import data"
         className="w-9 h-9 flex items-center justify-center rounded-xl
-          bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700
-          text-gray-500 dark:text-neutral-400 hover:text-blue-600 dark:hover:text-blue-400
+          bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-700
+          text-slate-500 dark:text-neutral-400 hover:text-blue-600 dark:hover:text-blue-400
           shadow-md hover:shadow-lg transition-all"
       >
         <Upload size={15} />
@@ -130,7 +130,7 @@ export function Sidebar({ state, dispatch }: SidebarProps) {
     <>
       {/* Mobile hamburger */}
       <button
-        className="md:hidden fixed top-4 left-4 z-50 p-2 bg-white dark:bg-neutral-900 rounded-lg border border-gray-200 dark:border-neutral-800 text-gray-700 dark:text-neutral-200 shadow"
+        className="md:hidden fixed top-4 left-4 z-50 p-2 bg-white dark:bg-neutral-900 rounded-lg border border-slate-200 dark:border-neutral-800 text-slate-700 dark:text-neutral-200 shadow"
         onClick={() => setIsOpen(!isOpen)}
       >
         {isOpen ? <X size={20} /> : <Menu size={20} />}
@@ -138,8 +138,8 @@ export function Sidebar({ state, dispatch }: SidebarProps) {
 
       <aside className={`
         fixed md:static inset-y-0 left-0 z-40
-        flex flex-col w-64 bg-gray-50 dark:bg-neutral-950
-        border-r border-gray-200 dark:border-neutral-800
+        flex flex-col w-64 bg-slate-50 dark:bg-neutral-950
+        border-r border-slate-200 dark:border-neutral-800
         p-4 gap-3
         transform transition-transform duration-300 ease-in-out
         ${isOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0
@@ -148,7 +148,7 @@ export function Sidebar({ state, dispatch }: SidebarProps) {
         {/* Logo */}
         <div className="flex items-center gap-2 px-1 py-2 mb-2 md:mt-0 mt-10">
           <Target size={20} className="text-blue-600" />
-          <span className="text-sm font-semibold tracking-widest text-gray-800 dark:text-neutral-200 uppercase">
+          <span className="text-sm font-semibold tracking-widest text-slate-800 dark:text-neutral-200 uppercase">
             Deadline
           </span>
         </div>
@@ -166,7 +166,7 @@ export function Sidebar({ state, dispatch }: SidebarProps) {
               className={`flex items-center gap-2 px-2 py-2 rounded-lg text-left text-xs font-medium transition-all ${
                 state.activeView === view
                   ? 'bg-blue-600/10 dark:bg-blue-900/40 border border-blue-200 dark:border-blue-700/50 text-blue-700 dark:text-blue-300'
-                  : 'text-gray-500 dark:text-neutral-400 hover:bg-gray-100 dark:hover:bg-neutral-900 hover:text-gray-800 dark:hover:text-neutral-200'
+                  : 'text-slate-500 dark:text-neutral-400 hover:bg-slate-100 dark:hover:bg-neutral-900 hover:text-slate-800 dark:hover:text-neutral-200'
               }`}
             >
               {icon}
@@ -186,12 +186,12 @@ export function Sidebar({ state, dispatch }: SidebarProps) {
               setIsOpen(false);
               setTimeout(() => window.dispatchEvent(new CustomEvent('open-reflection')), 100);
             }}
-            className="flex items-center gap-2 px-2 py-2 rounded-lg text-left text-xs font-medium transition-all text-gray-500 dark:text-neutral-400 hover:bg-gray-100 dark:hover:bg-neutral-900 hover:text-gray-800 dark:hover:text-neutral-200"
+            className="flex items-center gap-2 px-2 py-2 rounded-lg text-left text-xs font-medium transition-all text-slate-500 dark:text-neutral-400 hover:bg-slate-100 dark:hover:bg-neutral-900 hover:text-slate-800 dark:hover:text-neutral-200"
           >
             <BookOpen size={15} />
             <span>Reflect</span>
             {state.reflections.filter(r => r.content && r.date !== '__trigger__').length > 0 && (
-              <span className="ml-auto bg-gray-100 dark:bg-neutral-800 text-gray-600 dark:text-neutral-400 text-[10px] px-1.5 py-0.5 rounded-full">
+              <span className="ml-auto bg-slate-100 dark:bg-neutral-800 text-slate-600 dark:text-neutral-400 text-[10px] px-1.5 py-0.5 rounded-full">
                 {state.reflections.filter(r => r.content && r.date !== '__trigger__').length}
               </span>
             )}
@@ -199,17 +199,17 @@ export function Sidebar({ state, dispatch }: SidebarProps) {
         </nav>
 
         {/* Divider */}
-        <div className="h-px bg-gray-200 dark:bg-neutral-800 mx-1" />
+        <div className="h-px bg-slate-200 dark:bg-neutral-800 mx-1" />
 
         {/* Goals Section Header */}
         <div className="flex items-center justify-between px-1">
-          <span className="text-[10px] font-semibold tracking-widest text-gray-400 dark:text-neutral-500 uppercase">
+          <span className="text-[10px] font-semibold tracking-widest text-slate-400 dark:text-neutral-500 uppercase">
             Goals
           </span>
           <button
             onClick={() => setShowNewGoal((v) => !v)}
             aria-label="Add new goal"
-            className="text-gray-400 dark:text-neutral-500 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+            className="text-slate-400 dark:text-neutral-500 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
           >
             <Plus size={14} />
           </button>
@@ -217,7 +217,7 @@ export function Sidebar({ state, dispatch }: SidebarProps) {
 
         {/* New Goal Form */}
         {showNewGoal && (
-          <div className="flex flex-col gap-2 p-3 rounded-xl bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800">
+          <div className="flex flex-col gap-2 p-3 rounded-xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800">
             <input
               autoFocus
               type="text"
@@ -225,20 +225,20 @@ export function Sidebar({ state, dispatch }: SidebarProps) {
               value={newTitle}
               onChange={(e) => setNewTitle(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter') handleAddGoal(); }}
-              className="w-full text-xs bg-gray-50 dark:bg-neutral-800 text-gray-800 dark:text-neutral-200 rounded-lg px-2 py-1.5 outline-none border border-gray-200 dark:border-neutral-700 focus:border-blue-500 dark:focus:border-blue-500"
+              className="w-full text-xs bg-slate-50 dark:bg-neutral-800 text-slate-800 dark:text-neutral-200 rounded-lg px-2 py-1.5 outline-none border border-slate-200 dark:border-neutral-700 focus:border-blue-500 dark:focus:border-blue-500"
             />
             <input
               type="date"
               value={newDate}
               onChange={(e) => setNewDate(e.target.value)}
-              className="w-full text-xs bg-gray-50 dark:bg-neutral-800 text-gray-800 dark:text-neutral-200 rounded-lg px-2 py-1.5 outline-none border border-gray-200 dark:border-neutral-700 focus:border-blue-500 cursor-pointer"
+              className="w-full text-xs bg-slate-50 dark:bg-neutral-800 text-slate-800 dark:text-neutral-200 rounded-lg px-2 py-1.5 outline-none border border-slate-200 dark:border-neutral-700 focus:border-blue-500 cursor-pointer"
             />
             <input
               type="time"
               value={newTime}
               onChange={(e) => setNewTime(e.target.value)}
               aria-label="Goal target time (optional)"
-              className="w-full text-xs bg-gray-50 dark:bg-neutral-800 text-gray-800 dark:text-neutral-200 rounded-lg px-2 py-1.5 outline-none border border-gray-200 dark:border-neutral-700 focus:border-blue-500 cursor-pointer"
+              className="w-full text-xs bg-slate-50 dark:bg-neutral-800 text-slate-800 dark:text-neutral-200 rounded-lg px-2 py-1.5 outline-none border border-slate-200 dark:border-neutral-700 focus:border-blue-500 cursor-pointer"
             />
             <div className="flex gap-2">
               <button
@@ -249,7 +249,7 @@ export function Sidebar({ state, dispatch }: SidebarProps) {
               </button>
               <button
                 onClick={() => { setShowNewGoal(false); setNewTitle(''); setNewDate(''); setNewTime(''); }}
-                className="flex-1 text-xs bg-gray-100 dark:bg-neutral-800 hover:bg-gray-200 dark:hover:bg-neutral-700 text-gray-500 dark:text-neutral-400 rounded-lg py-1.5 transition-colors"
+                className="flex-1 text-xs bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 dark:hover:bg-neutral-700 text-slate-500 dark:text-neutral-400 rounded-lg py-1.5 transition-colors"
               >
                 Cancel
               </button>
@@ -260,7 +260,7 @@ export function Sidebar({ state, dispatch }: SidebarProps) {
         {/* Goals List */}
         <nav className="flex flex-col gap-1 flex-1 overflow-y-auto min-h-0">
           {state.goals.length === 0 && (
-            <p className="text-xs text-gray-400 dark:text-neutral-600 px-2 mt-2">
+            <p className="text-xs text-slate-400 dark:text-neutral-600 px-2 mt-2">
               No goals yet. Add one above.
             </p>
           )}
@@ -279,7 +279,7 @@ export function Sidebar({ state, dispatch }: SidebarProps) {
                 className={`group flex items-center gap-2 px-2 py-2 rounded-lg text-left transition-all ${
                   isActive
                     ? 'bg-blue-600/10 dark:bg-blue-900/40 border border-blue-200 dark:border-blue-700/50 text-blue-700 dark:text-blue-300'
-                    : 'text-gray-500 dark:text-neutral-400 hover:bg-gray-100 dark:hover:bg-neutral-900 hover:text-gray-800 dark:hover:text-neutral-200'
+                    : 'text-slate-500 dark:text-neutral-400 hover:bg-slate-100 dark:hover:bg-neutral-900 hover:text-slate-800 dark:hover:text-neutral-200'
                 }`}
               >
                 <ChevronRight
@@ -288,11 +288,11 @@ export function Sidebar({ state, dispatch }: SidebarProps) {
                 />
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-medium truncate">{goal.title}</p>
-                  <p className="text-[10px] text-gray-400 dark:text-neutral-600 truncate">
+                  <p className="text-[10px] text-slate-400 dark:text-neutral-600 truncate">
                     {formatDate(goal.targetDate)}
                   </p>
                   {total > 0 && (
-                    <div className="mt-1 h-0.5 rounded-full bg-gray-200 dark:bg-neutral-800 overflow-hidden">
+                    <div className="mt-1 h-0.5 rounded-full bg-slate-200 dark:bg-neutral-800 overflow-hidden">
                       <div
                         className="h-full bg-blue-600 transition-all"
                         style={{ width: `${(completed / total) * 100}%` }}
@@ -308,7 +308,7 @@ export function Sidebar({ state, dispatch }: SidebarProps) {
                     }
                   }}
                   aria-label={`Delete goal: ${goal.title}`}
-                  className="opacity-0 group-hover:opacity-100 text-gray-400 dark:text-neutral-600 hover:text-red-400 transition-all"
+                  className="opacity-0 group-hover:opacity-100 text-slate-400 dark:text-neutral-600 hover:text-red-400 transition-all"
                 >
                   <Trash2 size={12} />
                 </button>
