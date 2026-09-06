@@ -11,13 +11,16 @@ import {
   Sun,
   Moon,
   Calendar,
+  CalendarDays,
   Inbox,
   BarChart2,
-  BookOpen
+  BookOpen,
+  Bell
 } from 'lucide-react';
 import type { Goal, AppState } from '../types';
 import type { AppAction } from '../types';
 import { generateId, exportStateAsJSON, parseImportedState, formatDate } from '../utils';
+import { PaceBadge } from './CountdownCard';
 
 interface SidebarProps {
   state: AppState;
@@ -62,32 +65,42 @@ export function BottomToolbar({ state, dispatch }: { state: AppState; dispatch: 
       <button
         onClick={() => setIsDark((d) => !d)}
         title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-        className="w-9 h-9 flex items-center justify-center rounded-xl
-          bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-700
-          text-slate-500 dark:text-neutral-400 hover:text-blue-600 dark:hover:text-blue-400
-          shadow-md hover:shadow-lg transition-all"
+        className="icon-btn w-9 h-9"
       >
         {isDark ? <Sun size={15} /> : <Moon size={15} />}
       </button>
       <button
         onClick={() => exportStateAsJSON(state)}
         title="Export data"
-        className="w-9 h-9 flex items-center justify-center rounded-xl
-          bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-700
-          text-slate-500 dark:text-neutral-400 hover:text-blue-600 dark:hover:text-blue-400
-          shadow-md hover:shadow-lg transition-all"
+        className="icon-btn w-9 h-9"
       >
         <Download size={15} />
       </button>
       <button
         onClick={handleImport}
         title="Import data"
-        className="w-9 h-9 flex items-center justify-center rounded-xl
-          bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-700
-          text-slate-500 dark:text-neutral-400 hover:text-blue-600 dark:hover:text-blue-400
-          shadow-md hover:shadow-lg transition-all"
+        className="icon-btn w-9 h-9"
       >
         <Upload size={15} />
+      </button>
+      <button
+        onClick={() => {
+          if ('Notification' in window && Notification.permission === 'default') {
+            Notification.requestPermission();
+          }
+          dispatch({ type: 'TOGGLE_REMINDERS' });
+        }}
+        title={
+          !('Notification' in window)
+            ? 'Notifications not supported in this browser'
+            : state.remindersEnabled
+            ? 'Reminders on — click to disable'
+            : 'Reminders off — click to enable'
+        }
+        aria-label="Toggle deadline reminders"
+        className={`icon-btn w-9 h-9 ${state.remindersEnabled ? 'text-blue-600 dark:text-blue-400' : ''}`}
+      >
+        <Bell size={15} />
       </button>
     </div>
   );
@@ -156,6 +169,7 @@ export function Sidebar({ state, dispatch }: SidebarProps) {
         {/* Primary Navigation */}
         <nav className="flex flex-col gap-1">
           {[
+            { view: 'calendar' as const, icon: <CalendarDays size={15} />, label: 'Calendar' },
             { view: 'today' as const, icon: <Calendar size={15} />, label: 'Today' },
             { view: 'inbox' as const, icon: <Inbox size={15} />, label: 'Inbox', badge: state.inbox?.length },
             { view: 'analytics' as const, icon: <BarChart2 size={15} />, label: 'Analytics' },
@@ -269,14 +283,24 @@ export function Sidebar({ state, dispatch }: SidebarProps) {
             const completed = goal.tasks.filter((t) => t.completed).length;
             const total = goal.tasks.length;
             return (
-              <button
+              <div
                 key={goal.id}
+                role="button"
+                tabIndex={0}
                 onClick={() => {
                   dispatch({ type: 'SET_ACTIVE_VIEW', payload: { view: 'goal' } });
                   dispatch({ type: 'SET_ACTIVE_GOAL', payload: { id: goal.id } });
                   setIsOpen(false);
                 }}
-                className={`group flex items-center gap-2 px-2 py-2 rounded-lg text-left transition-all ${
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    dispatch({ type: 'SET_ACTIVE_VIEW', payload: { view: 'goal' } });
+                    dispatch({ type: 'SET_ACTIVE_GOAL', payload: { id: goal.id } });
+                    setIsOpen(false);
+                  }
+                }}
+                className={`focus-ring group flex items-center gap-2 px-2 py-2 rounded-lg text-left transition-all cursor-pointer ${
                   isActive
                     ? 'bg-blue-600/10 dark:bg-blue-900/40 border border-blue-200 dark:border-blue-700/50 text-blue-700 dark:text-blue-300'
                     : 'text-slate-500 dark:text-neutral-400 hover:bg-slate-100 dark:hover:bg-neutral-900 hover:text-slate-800 dark:hover:text-neutral-200'
@@ -292,11 +316,14 @@ export function Sidebar({ state, dispatch }: SidebarProps) {
                     {formatDate(goal.targetDate)}
                   </p>
                   {total > 0 && (
-                    <div className="mt-1 h-0.5 rounded-full bg-slate-200 dark:bg-neutral-800 overflow-hidden">
-                      <div
-                        className="h-full bg-blue-600 transition-all"
-                        style={{ width: `${(completed / total) * 100}%` }}
-                      />
+                    <div className="mt-1.5 flex items-center gap-1.5">
+                      <div className="h-0.5 flex-1 rounded-full bg-slate-200 dark:bg-neutral-800 overflow-hidden">
+                        <div
+                          className="h-full bg-blue-600 transition-all"
+                          style={{ width: `${(completed / total) * 100}%` }}
+                        />
+                      </div>
+                      <PaceBadge goal={goal} />
                     </div>
                   )}
                 </div>
@@ -308,11 +335,11 @@ export function Sidebar({ state, dispatch }: SidebarProps) {
                     }
                   }}
                   aria-label={`Delete goal: ${goal.title}`}
-                  className="opacity-0 group-hover:opacity-100 text-slate-400 dark:text-neutral-600 hover:text-red-400 transition-all"
+                  className="opacity-0 group-hover:opacity-100 focus-visible:opacity-100 text-slate-400 dark:text-neutral-600 hover:text-red-400 transition-all"
                 >
                   <Trash2 size={12} />
                 </button>
-              </button>
+              </div>
             );
           })}
         </nav>
