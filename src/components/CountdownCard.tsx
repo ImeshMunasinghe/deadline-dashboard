@@ -3,7 +3,41 @@ import { Edit2, Check, X, Share2, Copy } from 'lucide-react';
 import type { Goal } from '../types';
 import type { AppAction } from '../types';
 import { useCountdown } from '../hooks';
-import { encodeGoalShare } from '../utils';
+import { encodeGoalShare, computePace } from '../utils';
+import type { GoalPace } from '../utils';
+
+// Pace chip: colored dot + label, no emojis
+const PACE_STYLE: Record<string, { dot: string; label: string; text: string }> = {
+  ahead: { dot: 'bg-emerald-500', label: 'Ahead', text: 'text-emerald-400' },
+  'on-track': { dot: 'bg-amber-500', label: 'On track', text: 'text-amber-400' },
+  behind: { dot: 'bg-orange-500', label: 'Behind', text: 'text-orange-400' },
+  'at-risk': { dot: 'bg-red-500', label: 'At risk', text: 'text-red-400' },
+  done: { dot: 'bg-emerald-500', label: 'Done', text: 'text-emerald-400' },
+};
+
+export function PaceBadge({ goal, showDetail }: { goal: Goal; showDetail?: boolean }) {
+  const pace: GoalPace = computePace(goal);
+  const style = PACE_STYLE[pace.status];
+  if (!style) return null;
+  return (
+    <span
+      className="chip bg-slate-100 dark:bg-neutral-800 text-slate-500 dark:text-neutral-400"
+      title={
+        pace.tasksPerDayNeeded > 0
+          ? `Need ${pace.tasksPerDayNeeded} tasks/day, averaging ${pace.tasksPerDayActual}/day`
+          : undefined
+      }
+    >
+      <span className={`w-2 h-2 rounded-full ${style.dot}`} aria-hidden />
+      {style.label}
+      {showDetail && pace.tasksPerDayNeeded > 0 && (
+        <span className="text-slate-400 dark:text-neutral-500">
+          · need {pace.tasksPerDayNeeded}/day
+        </span>
+      )}
+    </span>
+  );
+}
 
 interface CountdownCardProps {
   goal: Goal;
@@ -18,13 +52,13 @@ function ProgressRing({ percent, isExpired }: { percent: number; isExpired?: boo
 
   return (
     <svg width="128" height="128" className="rotate-[-90deg]" aria-hidden>
-      {/* Track */}
+      {/* Track — theme-aware via CSS variables */}
       <circle
         cx="64"
         cy="64"
         r={radius}
         fill="none"
-        stroke="#262626"
+        className="stroke-slate-200 dark:stroke-neutral-800"
         strokeWidth="8"
       />
       {/* Progress */}
@@ -57,11 +91,11 @@ function ProgressRing({ percent, isExpired }: { percent: number; isExpired?: boo
 // Single number unit for the countdown display
 function CountUnit({ value, label }: { value: number; label: string }) {
   return (
-    <div className="flex flex-col items-center min-w-[48px]">
-      <span className="text-3xl font-mono font-bold text-slate-900 dark:text-neutral-100 tabular-nums leading-none">
+    <div className="flex flex-col items-center min-w-[44px] sm:min-w-[48px]">
+      <span className="text-2xl sm:text-3xl font-mono font-bold text-slate-900 dark:text-neutral-100 tabular-nums leading-none">
         {String(value).padStart(2, '0')}
       </span>
-      <span className="text-[10px] text-slate-400 dark:text-neutral-500 uppercase tracking-widest mt-1">
+      <span className="text-[11px] text-slate-400 dark:text-neutral-500 uppercase tracking-widest mt-1">
         {label}
       </span>
     </div>
@@ -144,6 +178,9 @@ export function CountdownCard({ goal, dispatch }: CountdownCardProps) {
                   year: 'numeric',
                 })}
               </p>
+              <div className="mt-2">
+                <PaceBadge goal={goal} showDetail />
+              </div>
             </>
           )}
         </div>
@@ -206,7 +243,7 @@ export function CountdownCard({ goal, dispatch }: CountdownCardProps) {
       )}
 
       {/* Main countdown display */}
-      <div className="flex items-center gap-8">
+      <div className="flex flex-wrap items-center gap-4 sm:gap-8">
         {/* Ring */}
         <div className="relative shrink-0">
           <ProgressRing
@@ -217,7 +254,7 @@ export function CountdownCard({ goal, dispatch }: CountdownCardProps) {
             <span className={`text-sm font-bold ${urgencyClass}`}>
               {countdown.isExpired ? '100%' : `${Math.round(countdown.progressPercent)}%`}
             </span>
-            <span className="text-[9px] text-slate-400 dark:text-neutral-600 tracking-widest uppercase">
+            <span className="text-[11px] text-slate-400 dark:text-neutral-600 tracking-widest uppercase">
               {countdown.isExpired ? 'done' : 'elapsed'}
             </span>
           </div>
@@ -235,13 +272,13 @@ export function CountdownCard({ goal, dispatch }: CountdownCardProps) {
           </div>
         ) : (
           /* Units */
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-4">
             <CountUnit value={countdown.days} label="days" />
-            <span className="text-2xl text-slate-300 dark:text-neutral-700 font-mono">:</span>
+            <span className="text-2xl text-slate-300 dark:text-neutral-700 font-mono hidden sm:inline">:</span>
             <CountUnit value={countdown.hours} label="hrs" />
-            <span className="text-2xl text-slate-300 dark:text-neutral-700 font-mono">:</span>
+            <span className="text-2xl text-slate-300 dark:text-neutral-700 font-mono hidden sm:inline">:</span>
             <CountUnit value={countdown.minutes} label="min" />
-            <span className="text-2xl text-slate-300 dark:text-neutral-700 font-mono">:</span>
+            <span className="text-2xl text-slate-300 dark:text-neutral-700 font-mono hidden sm:inline">:</span>
             <CountUnit value={countdown.seconds} label="sec" />
           </div>
         )}

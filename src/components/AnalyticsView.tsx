@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import React, { useMemo } from 'react';
 import {
   BarChart,
   Bar,
@@ -11,12 +11,29 @@ import {
 } from 'recharts';
 import type { AppState, AppAction } from '../types';
 
+// Detect dark mode for Recharts, which needs concrete color values
+function useIsDark(): boolean {
+  // Safe initial read; falls back to media query on change
+  const [isDark, setIsDark] = React.useState(
+    () => document.documentElement.classList.contains('dark')
+  );
+  React.useEffect(() => {
+    const observer = new MutationObserver(() => {
+      setIsDark(document.documentElement.classList.contains('dark'));
+    });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    return () => observer.disconnect();
+  }, []);
+  return isDark;
+}
+
 interface AnalyticsViewProps {
   state: AppState;
   dispatch: React.Dispatch<AppAction>;
 }
 
 export function AnalyticsView({ state, dispatch }: AnalyticsViewProps) {
+  const isDark = useIsDark();
   // Aggregate all tasks
   const allTasks = useMemo(() => state.goals.flatMap(g => g.tasks), [state.goals]);
   const completedTasks = useMemo(() => allTasks.filter(t => t.completed && t.completedAt), [allTasks]);
@@ -85,51 +102,73 @@ export function AnalyticsView({ state, dispatch }: AnalyticsViewProps) {
     return `< 1h`;
   }, [completedTasks]);
 
+  // Stats: Estimate accuracy (completed tasks with estimates and logged time)
+  const estimateAccuracy = useMemo(() => {
+    const withBoth = completedTasks.filter((t) => t.estimatedMinutes && t.actualMinutes > 0);
+    if (withBoth.length === 0) return 'N/A';
+    const est = withBoth.reduce((s, t) => s + (t.estimatedMinutes ?? 0), 0);
+    const act = withBoth.reduce((s, t) => s + t.actualMinutes, 0);
+    const pct = Math.round((act / est) * 100);
+    return `${pct}% of estimate`;
+  }, [completedTasks]);
+
   return (
     <div className="p-6 max-w-5xl w-full mx-auto">
       <h2 className="text-2xl font-bold mb-6 text-slate-900 dark:text-neutral-100">Analytics</h2>
-      
+
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-        <div className="bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-xl p-6 flex flex-col justify-center">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div className="card p-6 flex flex-col justify-center">
           <p className="text-xs text-slate-400 dark:text-neutral-500 uppercase tracking-widest mb-1">Most Productive Day (Last 4 Weeks)</p>
           <p className="text-2xl font-bold text-blue-500">{mostProductiveDay}</p>
         </div>
-        <div className="bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-xl p-6 flex flex-col justify-center">
+        <div className="card p-6 flex flex-col justify-center">
           <p className="text-xs text-slate-400 dark:text-neutral-500 uppercase tracking-widest mb-1">Avg Time-to-Completion</p>
           <p className="text-2xl font-bold text-emerald-400">{avgTimeToCompletion}</p>
+        </div>
+        <div className="card p-6 flex flex-col justify-center">
+          <p className="text-xs text-slate-400 dark:text-neutral-500 uppercase tracking-widest mb-1">Focus Time vs Estimates</p>
+          <p className="text-2xl font-bold text-violet-500">{estimateAccuracy}</p>
         </div>
       </div>
 
       {/* Chart */}
-      <div className="bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-xl p-6 mb-6">
+      <div className="card p-6 mb-6">
         <h3 className="text-sm font-medium text-slate-700 dark:text-neutral-300 mb-6">Tasks Completed per Day (Last 4 Weeks)</h3>
         <div className="h-64 w-full">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" className="dark:stroke-neutral-800" vertical={false} />
-              <XAxis 
-                dataKey="dateLabel" 
-                tick={{ fontSize: 10, fill: '#9ca3af' }}
+              <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#262626' : '#e5e7eb'} vertical={false} />
+              <XAxis
+                dataKey="dateLabel"
+                tick={{ fontSize: 11, fill: isDark ? '#737373' : '#9ca3af' }}
                 axisLine={false}
                 tickLine={false}
                 minTickGap={20}
               />
-              <YAxis 
+              <YAxis
                 allowDecimals={false}
-                tick={{ fontSize: 10, fill: '#9ca3af' }}
+                tick={{ fontSize: 11, fill: isDark ? '#737373' : '#9ca3af' }}
                 axisLine={false}
                 tickLine={false}
               />
-              <Tooltip 
-                cursor={{ fill: '#f3f4f6' }}
-                contentStyle={{ backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '8px', fontSize: '12px' }}
-                itemStyle={{ color: '#2563eb' }}
-                labelStyle={{ color: '#6b7280', marginBottom: '4px' }}
+              <Tooltip
+                cursor={{ fill: isDark ? '#26262655' : '#f3f4f6' }}
+                contentStyle={{
+                  backgroundColor: isDark ? '#171717' : '#ffffff',
+                  border: `1px solid ${isDark ? '#262626' : '#e5e7eb'}`,
+                  borderRadius: '8px',
+                  fontSize: '12px',
+                }}
+                itemStyle={{ color: isDark ? '#60a5fa' : '#2563eb' }}
+                labelStyle={{ color: isDark ? '#a3a3a3' : '#6b7280', marginBottom: '4px' }}
               />
               <Bar dataKey="completed" radius={[4, 4, 0, 0]}>
                 {chartData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.completed > 0 ? '#2563eb' : '#e5e7eb'} />
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={entry.completed > 0 ? '#2563eb' : (isDark ? '#262626' : '#e5e7eb')}
+                  />
                 ))}
               </Bar>
             </BarChart>

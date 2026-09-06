@@ -199,8 +199,16 @@ export function TaskItem({ task, goalId, dispatch, dragHandleProps, availableTas
                 }`}
               >
                 <Clock size={10} />
-                {task.estimatedMinutes ? `${task.estimatedMinutes}m` : 'Time'}
+                {task.estimatedMinutes
+                  ? `${task.estimatedMinutes}m${task.actualMinutes > 0 ? ` / ${task.actualMinutes}m done` : ''}`
+                  : 'Time'}
               </button>
+            )}
+            {task.actualMinutes > 0 && !task.estimatedMinutes && (
+              <span className="flex items-center gap-1 text-[10px] text-blue-400" title="Logged focus time">
+                <Clock size={10} />
+                {task.actualMinutes}m focused
+              </span>
             )}
 
             {/* Recurrence */}

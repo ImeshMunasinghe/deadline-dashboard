@@ -1,12 +1,29 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Play, Pause, RotateCcw, Timer } from 'lucide-react';
 import { usePomodoro } from '../hooks';
+import type { AppState, AppAction, Task } from '../types';
+
+interface PomodoroTimerProps {
+  state: AppState;
+  dispatch: React.Dispatch<AppAction>;
+}
 
 // Floating Pomodoro circle fixed to the bottom-right corner of the viewport.
 // Space bar (when not typing) toggles the timer.
-export function PomodoroTimer() {
+export function PomodoroTimer({ state, dispatch }: PomodoroTimerProps) {
   const { pomo, toggle, reset } = usePomodoro();
   const [toast, setToast] = useState<string | null>(null);
+
+  // Focus target: any incomplete task across goals and inbox
+  const focusableTasks: { task: Task; label: string }[] = [
+    ...state.goals.flatMap((g) =>
+      g.tasks.filter((t) => !t.completed).map((t) => ({ task: t, label: `${g.title} — ${t.text}` }))
+    ),
+    ...state.inbox.filter((t) => !t.completed).map((t) => ({ task: t, label: `Inbox — ${t.text}` })),
+  ];
+
+  const [selectedTaskId, setSelectedTaskId] = useState<string>('');
+  const selectedTask = focusableTasks.find((f) => f.task.id === selectedTaskId) ?? null;
 
   const mins = Math.floor(pomo.secondsLeft / 60);
   const secs = pomo.secondsLeft % 60;
@@ -40,9 +57,14 @@ export function PomodoroTimer() {
   useEffect(() => {
     if (pomo.secondsLeft !== 0) return;
 
+    // Log focus time to the selected task when a focus session completes
+    if (pomo.phase === 'focus' && selectedTaskId) {
+      dispatch({ type: 'LOG_FOCUS_TIME', payload: { taskId: selectedTaskId, minutes: 25 } });
+    }
+
     const msg = pomo.phase === 'focus'
-      ? '🎉 Focus session done! Take a break.'
-      : '💪 Break over — back to work!';
+      ? 'Focus session done. Take a break.'
+      : 'Break over. Back to work.';
 
     // In-app toast
     setToast(msg);
@@ -50,7 +72,7 @@ export function PomodoroTimer() {
 
     // Browser notification
     if ('Notification' in window && Notification.permission === 'granted') {
-      new Notification(msg.replace(/^[^ ]+ /, ''));
+      new Notification(msg);
     }
 
     // Confetti only on focus session complete
@@ -66,7 +88,7 @@ export function PomodoroTimer() {
     }
 
     return () => clearTimeout(toastTimer);
-  }, [pomo.secondsLeft]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [pomo.secondsLeft, pomo.phase, selectedTaskId, dispatch]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <>
@@ -97,13 +119,35 @@ export function PomodoroTimer() {
         <div className="absolute -top-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100
           transition-opacity duration-200 whitespace-nowrap
           bg-slate-100 dark:bg-neutral-800 border border-slate-300 dark:border-neutral-700
-          text-[10px] text-slate-500 dark:text-neutral-400 px-2 py-1 rounded-lg shadow-lg pointer-events-none">
+          text-[11px] text-slate-500 dark:text-neutral-400 px-2 py-1 rounded-lg shadow-lg pointer-events-none">
           Space to toggle
+        </div>
+
+        {/* Focus target selector — pick which task focus time is logged to */}
+        <div className="absolute bottom-full mb-3 right-0 w-64 opacity-0 group-hover:opacity-100
+          focus-within:opacity-100 transition-opacity duration-200">
+          <select
+            value={selectedTaskId}
+            onChange={(e) => setSelectedTaskId(e.target.value)}
+            aria-label="Select task to log focus time"
+            className="w-full text-xs bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-700
+              text-slate-700 dark:text-neutral-300 rounded-lg px-2 py-1.5 shadow-lg outline-none cursor-pointer"
+          >
+            <option value="">No task selected</option>
+            {focusableTasks.map(({ task, label }) => (
+              <option key={task.id} value={task.id}>{label}</option>
+            ))}
+          </select>
+          {selectedTask && (
+            <p className="mt-1 text-right text-[10px] text-slate-400 dark:text-neutral-600">
+              25 min logged per focus session
+            </p>
+          )}
         </div>
 
         {/* Session count badge */}
         {pomo.sessions > 0 && (
-          <div className="absolute -top-2 -left-2 bg-blue-600 text-white text-[9px] font-bold rounded-full w-5 h-5 flex items-center justify-center shadow-lg">
+          <div className="absolute -top-2 -left-2 bg-blue-600 text-white text-[11px] font-bold rounded-full w-5 h-5 flex items-center justify-center shadow-lg">
             {pomo.sessions}
           </div>
         )}
@@ -149,19 +193,20 @@ export function PomodoroTimer() {
             <span className={`text-sm font-mono font-bold ${phaseTextClr} tabular-nums leading-none`}>
               {String(mins).padStart(2, '0')}:{String(secs).padStart(2, '0')}
             </span>
-            <span className="text-[8px] text-slate-400 dark:text-neutral-600 uppercase tracking-widest mt-0.5">
+            <span className="text-[10px] text-slate-400 dark:text-neutral-600 uppercase tracking-widest mt-0.5">
               {pomo.phase === 'focus' ? 'focus' : 'break'}
             </span>
           </div>
         </div>
 
-        {/* Controls — visible on hover, positioned to the left */}
-        <div className="absolute bottom-0 -left-12 flex flex-col gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+        {/* Controls — always visible but subdued; brighten on hover */}
+        <div className="absolute bottom-0 -left-12 flex flex-col gap-1.5 opacity-70 group-hover:opacity-100 transition-opacity duration-200">
           <button
             onClick={toggle}
             aria-label={pomo.running ? 'Pause Pomodoro' : 'Start Pomodoro'}
             className="w-8 h-8 rounded-full bg-slate-100 dark:bg-neutral-800 border border-slate-300 dark:border-neutral-700
               hover:bg-slate-200 dark:hover:bg-neutral-700 text-slate-700 dark:text-neutral-300
+              focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500
               flex items-center justify-center shadow-lg transition-colors"
           >
             {pomo.running ? <Pause size={12} /> : <Play size={12} />}
@@ -171,7 +216,9 @@ export function PomodoroTimer() {
             aria-label="Reset Pomodoro"
             className="w-8 h-8 rounded-full bg-slate-100 dark:bg-neutral-800 border border-slate-300 dark:border-neutral-700
               hover:bg-slate-200 dark:hover:bg-neutral-700 text-slate-400 dark:text-neutral-500
-              hover:text-slate-700 dark:hover:text-neutral-300 flex items-center justify-center shadow-lg transition-colors"
+              hover:text-slate-700 dark:hover:text-neutral-300
+              focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500
+              flex items-center justify-center shadow-lg transition-colors"
           >
             <RotateCcw size={11} />
           </button>
@@ -184,7 +231,9 @@ export function PomodoroTimer() {
             aria-label="Enable notifications"
             className="w-8 h-8 rounded-full bg-slate-100 dark:bg-neutral-800 border border-slate-300 dark:border-neutral-700
               hover:bg-slate-200 dark:hover:bg-neutral-700 text-slate-400 dark:text-neutral-500
-              hover:text-slate-700 dark:hover:text-neutral-300 flex items-center justify-center shadow-lg transition-colors"
+              hover:text-slate-700 dark:hover:text-neutral-300
+              focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500
+              flex items-center justify-center shadow-lg transition-colors"
             title="Enable focus notifications"
           >
             <Timer size={11} />
