@@ -1,0 +1,25 @@
+# Cline Rules — Deadline Dashboard
+
+## Memory Bank
+This project uses the memory bank in `cline_docs/`. Before starting any task, read:
+1. `cline_docs/projectbrief.md`
+2. `cline_docs/productContext.md`
+3. `cline_docs/systemPatterns.md`
+4. `cline_docs/techContext.md`
+5. `cline_docs/activeContext.md`
+6. `cline_docs/progress.md`
+
+Update `activeContext.md` and `progress.md` after completing meaningful work.
+
+## Code Rules
+- TypeScript strict; no `any` unless unavoidable.
+- All state mutations go through `appReducer` (`src/hooks/reducer.ts`) via typed `AppAction`s — never mutate state in components.
+- Pure, testable logic belongs in `src/utils`; side-effectful hooks in `src/hooks`; UI in `src/components`.
+- Persist data only via `useAppState` (localStorage key `deadline-dashboard-v2`) or the streak hook.
+- Dates are stored as ISO strings.
+- Style with Tailwind utilities; include `dark:` variants for light/dark support.
+- Run `npm run build` and `npm test` after significant changes to verify.
+
+## No Emojis
+- Never use emojis anywhere: UI copy, notifications, toasts, comments, or commit messages.
+- Use lucide-react icons, colored dots/badges (e.g. `PaceBadge`), or plain text instead.
