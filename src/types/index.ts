@@ -18,6 +18,7 @@ export interface Task {
   createdAt: string;       // ISO date string
   completedAt: string | null; // ISO datetime when task was completed, null if incomplete
   estimatedMinutes: number | null;
+  actualMinutes: number;   // minutes of logged focus time
   recurrence: 'daily' | 'weekly' | 'monthly' | null;
   blockedBy: string | null; // ID of another task
 }
@@ -64,10 +65,18 @@ export interface Reflection {
 export interface AppState {
   goals: Goal[];
   activeGoalId: string | null;
-  activeView: 'today' | 'analytics' | 'goal' | 'inbox';
+  activeView: 'calendar' | 'today' | 'analytics' | 'goal' | 'inbox';
   inbox: Task[];
   templates: Goal[];
   reflections: Reflection[];
+  dailyPlan: DailyPlan | null;
+  remindersEnabled: boolean;
+}
+
+// Ordered queue of task IDs planned for a specific day
+export interface DailyPlan {
+  date: string; // YYYY-MM-DD
+  taskIds: string[];
 }
 
 // ─── Reducer Actions ──────────────────────────────────────────────────────
@@ -93,7 +102,7 @@ export type AppAction =
   | { type: 'UNDO' }
   | { type: 'REDO' }
   // Navigation
-  | { type: 'SET_ACTIVE_VIEW'; payload: { view: 'today' | 'analytics' | 'goal' | 'inbox' } }
+  | { type: 'SET_ACTIVE_VIEW'; payload: { view: 'calendar' | 'today' | 'analytics' | 'goal' | 'inbox' } }
   // Inbox
   | { type: 'ADD_TO_INBOX'; payload: { task: Task } }
   | { type: 'DELETE_FROM_INBOX'; payload: { taskId: string } }
@@ -103,4 +112,12 @@ export type AppAction =
   | { type: 'SAVE_TEMPLATE'; payload: { template: Goal } }
   | { type: 'DELETE_TEMPLATE'; payload: { templateId: string } }
   // Reflections
-  | { type: 'SAVE_REFLECTION'; payload: { reflection: Reflection } };
+  | { type: 'SAVE_REFLECTION'; payload: { reflection: Reflection } }
+  // Daily plan
+  | { type: 'SET_DAILY_PLAN'; payload: { date: string; taskIds: string[] } }
+  | { type: 'REORDER_DAILY_PLAN'; payload: { taskIds: string[] } }
+  | { type: 'REMOVE_FROM_PLAN'; payload: { taskId: string } }
+  // Focus time tracking
+  | { type: 'LOG_FOCUS_TIME'; payload: { taskId: string; minutes: number } }
+  // Reminders
+  | { type: 'TOGGLE_REMINDERS' };

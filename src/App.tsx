@@ -8,10 +8,11 @@ import { NotesMilestones } from './components/NotesMilestones';
 import { EmptyState } from './components/EmptyState';
 import { TodayView } from './components/TodayView';
 import { AnalyticsView } from './components/AnalyticsView';
+import { CalendarView } from './components/CalendarView';
 import { QuickCapture } from './components/QuickCapture';
 import { DailyReflection } from './components/DailyReflection';
 import { useAppState } from './hooks';
-import { decodeGoalShare, generateId, getTaskStats } from './utils';
+import { decodeGoalShare, generateId, getTaskStats, computeDeadlineNotifications, filterUnnotified } from './utils';
 import type { Goal, AppAction } from './types';
 
 function GoalView({ activeGoal, dispatch }: { activeGoal: Goal | null, dispatch: React.Dispatch<AppAction> }) {
@@ -69,6 +70,16 @@ export default function App() {
     window.history.replaceState({}, '', clean.toString());
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Fire deadline notifications once per day on load (if permitted and enabled)
+  useEffect(() => {
+    if (!state.remindersEnabled) return;
+    if (!('Notification' in window) || Notification.permission !== 'granted') return;
+    const pending = filterUnnotified(computeDeadlineNotifications(state));
+    pending.forEach((n) => {
+      new Notification(n.title, { body: n.body });
+    });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   const activeGoal = state.goals.find((g) => g.id === state.activeGoalId) ?? null;
 
   // Track task progress to trigger confetti on 100% completion
@@ -112,6 +123,7 @@ export default function App() {
 
       {/* ── Main area */}
       <main className="flex-1 flex flex-col overflow-y-auto">
+        {state.activeView === 'calendar' && <CalendarView state={state} dispatch={dispatch} />}
         {state.activeView === 'today' && <TodayView state={state} dispatch={dispatch} />}
         {state.activeView === 'analytics' && <AnalyticsView state={state} dispatch={dispatch} />}
         {(state.activeView === 'goal' || state.activeView === 'inbox') && (
@@ -120,7 +132,7 @@ export default function App() {
       </main>
 
       {/* ── Floating Pomodoro Timer — always visible in the bottom-right corner */}
-      <PomodoroTimer />
+      <PomodoroTimer state={state} dispatch={dispatch} />
       <QuickCapture dispatch={dispatch} />
       <DailyReflection state={state} dispatch={dispatch} />
       <BottomToolbar state={state} dispatch={dispatch} />

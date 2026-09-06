@@ -45,6 +45,7 @@ export function QuickCapture({ dispatch }: QuickCaptureProps) {
       createdAt: new Date().toISOString(),
       completedAt: null,
       estimatedMinutes: null,
+      actualMinutes: 0,
       recurrence: null,
       blockedBy: null,
     };

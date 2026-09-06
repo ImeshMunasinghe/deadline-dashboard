@@ -47,3 +47,198 @@ describe('computeCountdown', () => {
     expect(result.progressPercent).toBe(100);
   });
 });
+
+// ─── computeDailyPlan ─────────────────────────────────────────────────────
+
+import { computeDailyPlan, computePace, normalizeState } from './index';
+import type { PlanCandidate } from './index';
+import type { AppState } from '../types';
+
+describe('computeDailyPlan', () => {
+  const base: PlanCandidate[] = [
+    { taskId: 'overdue-high', goalId: '', dueDate: '2026-06-10T00:00:00Z', priority: 'high', estimatedMinutes: 60 },
+    { taskId: 'overdue-low', goalId: '', dueDate: '2026-06-09T00:00:00Z', priority: 'low', estimatedMinutes: 30 },
+    { taskId: 'today-med', goalId: '', dueDate: '2026-06-11T18:00:00Z', priority: 'medium', estimatedMinutes: 120 },
+    { taskId: 'upcoming', goalId: '', dueDate: '2026-06-20T00:00:00Z', priority: 'medium', estimatedMinutes: 90 },
+    { taskId: 'blocked', goalId: '', dueDate: '2026-06-10T00:00:00Z', priority: 'high', estimatedMinutes: 60 },
+  ];
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-06-11T12:00:00.000Z'));
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('orders overdue before today before upcoming, high priority first', () => {
+    const plan = computeDailyPlan(base, new Set());
+    // 'blocked' is included here (empty blocked set) and sorts with the overdue group
+    expect(plan).toEqual(['overdue-high', 'blocked', 'overdue-low', 'today-med', 'upcoming']);
+  });
+
+  it('excludes blocked tasks', () => {
+    const plan = computeDailyPlan(base, new Set(['blocked']));
+    expect(plan).not.toContain('blocked');
+  });
+
+  it('respects capacity limit', () => {
+    const plan = computeDailyPlan(base, new Set(), 90);
+    // overdue-high (60) fits; overdue-low (30) fills to 90; others skipped
+    expect(plan).toEqual(['overdue-high', 'overdue-low']);
+  });
+
+  it('defaults unestimated tasks to 30 minutes', () => {
+    const noEstimate: PlanCandidate[] = [
+      { taskId: 'a', goalId: '', dueDate: null, priority: 'low', estimatedMinutes: 0 },
+      { taskId: 'b', goalId: '', dueDate: null, priority: 'low', estimatedMinutes: 0 },
+      { taskId: 'c', goalId: '', dueDate: null, priority: 'low', estimatedMinutes: 0 },
+    ];
+    const plan = computeDailyPlan(noEstimate, new Set(), 75);
+    expect(plan).toEqual(['a', 'b']); // 30 + 30 = 60 fits; third would exceed 75
+  });
+});
+
+// ─── computePace ──────────────────────────────────────────────────────────
+
+describe('computePace', () => {
+  function makeGoal(overrides: Partial<Goal>): Goal {
+    return {
+      id: 'g1',
+      title: 'Test Goal',
+      targetDate: '2026-06-21T00:00:00Z',
+      tasks: [],
+      notes: '',
+      milestones: [],
+      createdAt: '2026-06-01T00:00:00Z',
+      category: 'Work',
+      color: '',
+      ...overrides,
+    };
+  }
+
+  const now = new Date('2026-06-11T00:00:00.000Z'); // day 10 of 20
+
+  it('marks ahead when actual pace exceeds required pace', () => {
+    // 5 of 10 tasks done in 10 days; 5 left in 10 days → needed 0.5/day, actual 0.5/day
+    // Add a completed task beyond pace: 6 done → actual 0.6 vs needed 0.4 → ahead
+    const goal = makeGoal({
+      tasks: [
+        ...Array.from({ length: 6 }, (_, i) => ({ id: `t${i}`, completed: true })),
+        ...Array.from({ length: 4 }, (_, i) => ({ id: `r${i}`, completed: false })),
+      ].map((t) => ({ id: String(t.id), text: '', completed: t.completed, priority: 'medium' as const, dueDate: null, subtasks: [], createdAt: '', completedAt: null, estimatedMinutes: null, actualMinutes: 0, recurrence: null, blockedBy: null })),
+    });
+    expect(computePace(goal, now).status).toBe('ahead');
+  });
+
+  it('marks at-risk when deadline passed with tasks remaining', () => {
+    const goal = makeGoal({ targetDate: '2026-06-05T00:00:00Z', tasks: [{ id: 'a', text: '', completed: false, priority: 'low', dueDate: null, subtasks: [], createdAt: '', completedAt: null, estimatedMinutes: null, actualMinutes: 0, recurrence: null, blockedBy: null }] });
+    expect(computePace(goal, now).status).toBe('at-risk');
+  });
+
+  it('marks done when all tasks completed', () => {
+    const goal = makeGoal({ tasks: [{ id: 'a', text: '', completed: true, priority: 'low', dueDate: null, subtasks: [], createdAt: '', completedAt: null, estimatedMinutes: null, actualMinutes: 0, recurrence: null, blockedBy: null }] });
+    expect(computePace(goal, now).status).toBe('done');
+  });
+
+  it('reports needed tasks per day', () => {
+    // 10 tasks, 5 done, 10 days left → need 0.5/day
+    const goal = makeGoal({
+      tasks: [
+        ...Array.from({ length: 5 }, (_, i) => ({ id: `t${i}`, completed: true })),
+        ...Array.from({ length: 5 }, (_, i) => ({ id: `r${i}`, completed: false })),
+      ].map((t) => ({ id: String(t.id), text: '', completed: t.completed, priority: 'low' as const, dueDate: null, subtasks: [], createdAt: '', completedAt: null, estimatedMinutes: null, actualMinutes: 0, recurrence: null, blockedBy: null })),
+    });
+    expect(computePace(goal, now).tasksPerDayNeeded).toBe(0.5);
+  });
+});
+
+// ─── Calendar utils ───────────────────────────────────────────────────────
+
+import { buildMonthGrid, collectCalendarEvents, sortCalendarEvents } from './index';
+import type { Goal } from '../types';
+
+describe('buildMonthGrid', () => {
+  it('produces 42 cells with correct inMonth flags and today marker', () => {
+    const today = new Date(2026, 8, 6); // Sep 6 2026, local time
+    const grid = buildMonthGrid(2026, 8, today); // September
+    expect(grid).toHaveLength(42);
+    const inMonth = grid.filter((d) => d.inMonth);
+    expect(inMonth).toHaveLength(30); // September has 30 days
+    const first = inMonth[0];
+    expect(first.dayOfMonth).toBe(1);
+    const todayCell = grid.find((d) => d.isToday);
+    expect(todayCell?.dayOfMonth).toBe(6);
+  });
+});
+
+describe('collectCalendarEvents', () => {
+  function makeGoal(overrides: Partial<Goal>): Goal {
+    return {
+      id: 'g1',
+      title: 'Goal One',
+      targetDate: '2026-09-10T12:00:00Z',
+      tasks: [],
+      notes: '',
+      milestones: [],
+      createdAt: '2026-08-01T00:00:00Z',
+      category: 'Work',
+      color: '',
+      ...overrides,
+    };
+  }
+
+  it('collects goals, tasks, and milestones by date', () => {
+    const goal = makeGoal({
+      milestones: [{ id: 'm1', label: 'Kickoff', date: '2026-09-05' }],
+      tasks: [
+        { id: 't1', text: 'Draft', completed: false, priority: 'high', dueDate: '2026-09-10T00:00:00Z', subtasks: [], createdAt: '', completedAt: null, estimatedMinutes: null, actualMinutes: 0, recurrence: null, blockedBy: null },
+      ],
+    });
+    const map = collectCalendarEvents({ goals: [goal] } as never, new Date(2026, 8, 6));
+
+    expect(map.get('2026-09-10')!.goals[0].title).toBe('Goal One');
+    expect(map.get('2026-09-10')!.tasks[0].title).toBe('Draft');
+    expect(map.get('2026-09-05')!.milestones[0].title).toBe('Kickoff');
+  });
+
+  it('flags past incomplete tasks as overdue', () => {
+    const goal = makeGoal({
+      tasks: [
+        { id: 't1', text: 'Late', completed: false, priority: 'low', dueDate: '2026-09-01T00:00:00Z', subtasks: [], createdAt: '', completedAt: null, estimatedMinutes: null, actualMinutes: 0, recurrence: null, blockedBy: null },
+      ],
+    });
+    const map = collectCalendarEvents({ goals: [goal] } as never, new Date(2026, 8, 6));
+    expect(map.get('2026-09-01')!.overdue).toHaveLength(1);
+  });
+
+  it('sorts goals first, then incomplete tasks by priority, completed last', () => {
+    const events = {
+      goals: [{ kind: 'goal' as const, id: 'g', title: 'G', date: '', goalId: '', goalTitle: '', goalColor: '' }],
+      tasks: [
+        { kind: 'task' as const, id: 't1', title: 'Low', date: '', goalId: '', goalTitle: '', goalColor: '', priority: 'low' as const, completed: false },
+        { kind: 'task' as const, id: 't2', title: 'Done', date: '', goalId: '', goalTitle: '', goalColor: '', priority: 'high' as const, completed: true },
+        { kind: 'task' as const, id: 't3', title: 'High', date: '', goalId: '', goalTitle: '', goalColor: '', priority: 'high' as const, completed: false },
+      ],
+      milestones: [],
+      overdue: [],
+    };
+    const sorted = sortCalendarEvents(events);
+    expect(sorted.map((e) => e.title)).toEqual(['G', 'High', 'Low', 'Done']);
+  });
+});
+
+// ─── normalizeState ───────────────────────────────────────────────────────
+
+describe('normalizeState', () => {
+  it('adds actualMinutes to tasks missing the field', () => {
+    const state = {
+      goals: [{ id: 'g', tasks: [{ id: 't', completed: false, estimatedMinutes: null, recurrence: null, blockedBy: null }] }],
+      inbox: [{ id: 'i', completed: false, estimatedMinutes: null, recurrence: null, blockedBy: null }],
+    } as unknown as AppState;
+    const fixed = normalizeState(state);
+    expect(fixed.goals[0].tasks[0].actualMinutes).toBe(0);
+    expect(fixed.inbox[0].actualMinutes).toBe(0);
+  });
+});

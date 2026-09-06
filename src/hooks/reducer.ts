@@ -1,14 +1,17 @@
-import type { AppState, AppAction } from '../types';
+import type { AppState, AppAction, Task } from '../types';
+import { normalizeState } from '../utils';
 
 // ─── Initial State ────────────────────────────────────────────────────────
 
 export const initialState: AppState = {
   goals: [],
   activeGoalId: null,
-  activeView: 'goal',
+  activeView: 'calendar',
   inbox: [],
   templates: [],
   reflections: [],
+  dailyPlan: null,
+  remindersEnabled: true,
 };
 
 // ─── Reducer ──────────────────────────────────────────────────────────────
@@ -119,6 +122,7 @@ export function appReducer(state: AppState, action: AppAction): AppState {
               completedAt: null,
               createdAt: now,
               dueDate: nextDue.toISOString().split('T')[0],
+              actualMinutes: 0,
               subtasks: t.subtasks.map(st => ({ ...st, id: Math.random().toString(36).substr(2, 9), completed: false }))
             };
             newTasks.push(clonedTask);
@@ -310,10 +314,50 @@ export function appReducer(state: AppState, action: AppAction): AppState {
       return { ...state, reflections: [...state.reflections, action.payload.reflection] };
     }
 
+    // ── Daily Plan ─────────────────────────────────────────────────────
+
+    case 'SET_DAILY_PLAN': {
+      return { ...state, dailyPlan: { date: action.payload.date, taskIds: action.payload.taskIds } };
+    }
+
+    case 'REORDER_DAILY_PLAN': {
+      if (!state.dailyPlan) return state;
+      return { ...state, dailyPlan: { ...state.dailyPlan, taskIds: action.payload.taskIds } };
+    }
+
+    case 'REMOVE_FROM_PLAN': {
+      if (!state.dailyPlan) return state;
+      return {
+        ...state,
+        dailyPlan: {
+          ...state.dailyPlan,
+          taskIds: state.dailyPlan.taskIds.filter((id) => id !== action.payload.taskId),
+        },
+      };
+    }
+
+    // ── Focus Time Tracking ────────────────────────────────────────────
+
+    case 'LOG_FOCUS_TIME': {
+      const { taskId, minutes } = action.payload;
+      const bump = (t: Task): Task => (t.id === taskId ? { ...t, actualMinutes: t.actualMinutes + minutes } : t);
+      return {
+        ...state,
+        goals: state.goals.map((g) => ({ ...g, tasks: g.tasks.map(bump) })),
+        inbox: state.inbox.map(bump),
+      };
+    }
+
+    // ── Reminders ──────────────────────────────────────────────────────
+
+    case 'TOGGLE_REMINDERS': {
+      return { ...state, remindersEnabled: !state.remindersEnabled };
+    }
+
     // ── State Hydration ────────────────────────────────────────────────
 
     case 'LOAD_STATE': {
-      return { ...initialState, ...action.payload };
+      return normalizeState({ ...initialState, ...action.payload });
     }
 
     default:

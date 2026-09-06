@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import type { AppState, AppAction, CountdownState } from '../types';
 import { appReducer, initialState } from './reducer';
-import { computeCountdown } from '../utils';
+import { computeCountdown, normalizeState } from '../utils';
 
 const STORAGE_KEY = 'deadline-dashboard-v2';
 
@@ -18,7 +18,7 @@ export function useAppState() {
         const parsed = JSON.parse(raw) as AppState;
         // Basic shape guard before loading
         if (Array.isArray(parsed.goals)) {
-          return { past: [], present: { ...initialState, ...parsed }, future: [] };
+          return { past: [], present: normalizeState({ ...initialState, ...parsed }), future: [] };
         }
       }
     } catch {
