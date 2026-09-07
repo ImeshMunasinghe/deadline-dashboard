@@ -1,6 +1,10 @@
 # Active Context
 
 ## Current State
+- **Google Calendar-style UX + Today task picker** (`2005e11`, 2026-09-07):
+  - CalendarView: fixed stale-today and UTC-vs-local date bugs (events now built from local date components); mosaic grid (gap-px layout); inline completion toggles on task chips and in the day panel; "+Add" inline task creation form (text, goal, priority, due date pre-filled); legend row; day panel close button.
+  - TodayView: "+Add task" opens a TaskPickerModal (all incomplete tasks grouped by goal, with search); planned tasks shown disabled; "Add to plan" on unplanned due-today rows; auto-plan now considers all tasks, not just due-today.
+- **Light-mode contrast pass** (`b824b41`, 2026-09-07): improved contrast/colors in CountdownCard, ProgressChart, TaskItem.
 - **Performance/bugfix/UX pass merged by user** (`3edf759`, 2026-09-07):
   - Rendering: single shared module-level tick replaces one setInterval per CountdownCard; TaskItem wrapped in React.memo with useCallback handlers.
   - Bug fixes: `isOverdue` now compares end-of-day (tasks due today are no longer overdue at midnight); recurrence clones use `generateId()`; dark-mode init reads localStorage before paint (no theme flash); Reflection modal opened via props/state in App instead of custom DOM events.

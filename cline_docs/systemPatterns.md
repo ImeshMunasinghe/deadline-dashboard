@@ -43,7 +43,9 @@ Key invariants:
 - Pomodoro focus sessions log 25 min to the selected task via `LOG_FOCUS_TIME` (accumulates `Task.actualMinutes`); analytics compare estimated vs actual.
 
 ## Calendar View
-- `buildMonthGrid` (Monday-start, 42 cells, local-date safe) + `collectCalendarEvents` (date → goal/task/milestone events with overdue tracking) power the default home view; clicking an item navigates to its goal via `SET_ACTIVE_VIEW` + `SET_ACTIVE_GOAL`.
+- `buildMonthGrid` (Monday-start, 42 cells, local-date safe) + `collectCalendarEvents` (date → goal/task/milestone events with overdue tracking) power the default home view; event dates are built from local date components, never UTC `toISOString`.
+- The calendar is write-capable: task chips and the day panel have inline completion toggles, and a "+Add" form creates tasks directly for a selected day (text, goal, priority, pre-filled due date).
+- Google Calendar-style mosaic layout (gap-px grid, rounded container) with a legend row.
 
 ## Recurrence & Dependency Semantics
 - Completing a recurring task schedules the next occurrence (daily +1d, weekly +7d, monthly +1mo) and un-completes it; clones get fresh IDs via `generateId()`.
