@@ -25,6 +25,7 @@ npm test          # Vitest
 - Windows development environment (PowerShell).
 - No backend; browser APIs only (localStorage, URL, Blob download).
 - PWA manifest icons reference `favicon.svg` in `public/`.
+- Hosting: Cloudflare Pages (`npm run build` -> `dist/`; `public/_redirects` provides the SPA fallback; pin `NODE_VERSION=20`).
 
 ## Conventions Observed in Codebase
 - Named exports for components/utilities; `App.tsx` uses a default export.

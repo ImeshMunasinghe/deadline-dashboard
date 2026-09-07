@@ -83,6 +83,19 @@ npm run preview   # serve the production build locally
 npm test          # Vitest — unit tests for all pure planning/calendar logic
 ```
 
+### Deployment (Cloudflare Pages)
+
+The app builds to static files in `dist/` and needs no server. Recommended Cloudflare Pages settings:
+
+| Setting | Value |
+|---|---|
+| Framework preset | None (or Vite) |
+| Build command | `npm run build` |
+| Build output directory | `dist` |
+| Environment variable | `NODE_VERSION` = `20` |
+
+Connect the GitHub repository in the Cloudflare dashboard (Workers & Pages > Create > Pages > Connect to Git) and every push to `master` deploys automatically. The SPA rewrite (`public/_redirects`) and the PWA service worker are picked up from the build output automatically.
+
 ## Tech Stack
 
 | Layer | Technology |
