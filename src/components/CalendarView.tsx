@@ -1,8 +1,9 @@
 import React, { useMemo, useState } from 'react';
 import { ChevronLeft, ChevronRight, CalendarDays, Flag, Target, Plus, X } from 'lucide-react';
 import type { AppState, AppAction, Priority } from '../types';
-import { buildMonthGrid, collectCalendarEvents, sortCalendarEvents, todayISO, generateId } from '../utils';
-import type { CalendarEvent } from '../utils';
+import { buildMonthGrid, collectCalendarEvents, sortCalendarEvents, todayISO, generateId, getSriLankanHolidayMap } from '../utils';
+import type { CalendarEvent, HolidayInfo } from '../utils';
+import { Moon, Sparkles } from 'lucide-react';
 
 interface CalendarViewProps {
   state: AppState;
@@ -212,9 +213,10 @@ export function CalendarView({ state, dispatch }: CalendarViewProps) {
   );
 
   // Recompute events when state changes OR when today rolls over
+  const holidayMap = useMemo(() => getSriLankanHolidayMap(cursor.year), [cursor.year]);
   const eventsByDate = useMemo(
-    () => collectCalendarEvents(state, today),
-    [state, todayStr] // eslint-disable-line react-hooks/exhaustive-deps
+    () => collectCalendarEvents(state, today, holidayMap),
+    [state, todayStr, holidayMap] // eslint-disable-line react-hooks/exhaustive-deps
   );
 
   function navigate(dir: -1 | 1) {
@@ -249,6 +251,11 @@ export function CalendarView({ state, dispatch }: CalendarViewProps) {
   const selectedEvents =
     selectedDate && eventsByDate.has(selectedDate)
       ? sortCalendarEvents(eventsByDate.get(selectedDate)!)
+      : [];
+
+  const selectedHolidays: HolidayInfo[] =
+    selectedDate && eventsByDate.has(selectedDate)
+      ? eventsByDate.get(selectedDate)!.holidays
       : [];
 
   const selectedDateLabel = selectedDate
@@ -371,6 +378,26 @@ export function CalendarView({ state, dispatch }: CalendarViewProps) {
                       {day.dayOfMonth}
                     </span>
 
+                    {/* Holiday chips — always shown, do not count toward event overflow */}
+                    {dayEvents && dayEvents.holidays.length > 0 && (
+                      <span className="flex flex-col gap-px overflow-hidden">
+                        {dayEvents.holidays.map((h) => (
+                          <span
+                            key={h.name}
+                            className="flex items-center gap-1 min-w-0 px-1 py-px rounded text-[10px] font-medium
+                              bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 truncate"
+                          >
+                            {h.type === 'poya' ? (
+                              <Moon size={9} className="shrink-0" aria-hidden />
+                            ) : (
+                              <Sparkles size={9} className="shrink-0" aria-hidden />
+                            )}
+                            <span className="truncate">{h.name}</span>
+                          </span>
+                        ))}
+                      </span>
+                    )}
+
                     {/* Event chips */}
                     <span className="flex flex-col gap-px overflow-hidden">
                       {visible.map((event) => (
@@ -406,6 +433,9 @@ export function CalendarView({ state, dispatch }: CalendarViewProps) {
               </span>
               <span className="flex items-center gap-1.5 text-[11px] text-slate-400 dark:text-neutral-600">
                 <span className="w-2 h-2 rounded-full bg-red-500" /> Overdue
+              </span>
+              <span className="flex items-center gap-1.5 text-[11px] text-slate-400 dark:text-neutral-600">
+                <Sparkles size={10} className="text-rose-500" /> Holiday (LK)
               </span>
             </div>
           </div>
@@ -464,10 +494,38 @@ export function CalendarView({ state, dispatch }: CalendarViewProps) {
 
               <div className="h-px bg-slate-100 dark:bg-neutral-800 my-3" />
 
+              {/* Holiday banner */}
+              {selectedHolidays.length > 0 && (
+                <ul className="flex flex-col gap-1.5 mb-1">
+                  {selectedHolidays.map((h) => (
+                    <li
+                      key={h.name}
+                      className="flex items-center gap-2 px-2.5 py-2 rounded-lg bg-rose-50 dark:bg-rose-950/40"
+                    >
+                      {h.type === 'poya' ? (
+                        <Moon size={14} className="text-rose-500 shrink-0" aria-hidden />
+                      ) : (
+                        <Sparkles size={14} className="text-rose-500 shrink-0" aria-hidden />
+                      )}
+                      <div className="min-w-0">
+                        <p className="text-xs font-medium text-rose-600 dark:text-rose-400 truncate">
+                          {h.name}
+                        </p>
+                        <p className="text-[10px] text-rose-400 dark:text-rose-500">
+                          {h.type === 'poya' ? 'Poya day' : 'Public holiday'} · Sri Lanka
+                        </p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+
               {/* Event list */}
               {selectedEvents.length === 0 ? (
                 <div className="py-6 text-center">
-                  <p className="text-xs text-slate-400 dark:text-neutral-500">Nothing scheduled.</p>
+                  <p className="text-xs text-slate-400 dark:text-neutral-500">
+                    {selectedHolidays.length > 0 ? 'No tasks or events this day.' : 'Nothing scheduled.'}
+                  </p>
                   {!showAddTask && (
                     <button
                       onClick={() => setShowAddTask(true)}

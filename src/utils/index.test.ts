@@ -223,9 +223,51 @@ describe('collectCalendarEvents', () => {
       ],
       milestones: [],
       overdue: [],
+      holidays: [],
     };
     const sorted = sortCalendarEvents(events);
     expect(sorted.map((e) => e.title)).toEqual(['G', 'High', 'Low', 'Done']);
+  });
+});
+
+// ─── Sri Lankan holidays ──────────────────────────────────────────────────
+
+import { getSriLankanHolidayMap } from './index';
+
+describe('getSriLankanHolidayMap', () => {
+  it('returns curated lunar holidays for dataset years', () => {
+    const map = getSriLankanHolidayMap(2026);
+    expect(map.get('2026-02-04')![0].name).toBe('National Day');
+    expect(map.get('2026-05-30')![0]).toMatchObject({ name: 'Vesak Full Moon Poya', type: 'poya' });
+    expect(map.get('2026-11-08')![0].name).toBe('Deepavali Festival Day');
+    expect(map.get('2026-04-14')![0].name).toBe('Sinhala and Tamil New Year');
+    // Every dataset year should include all 12 Poya days
+    const poyas = [...map.values()].flat().filter((h) => h.type === 'poya');
+    expect(poyas.length).toBe(12);
+  });
+
+  it('falls back to fixed-date holidays for uncovered years', () => {
+    const map = getSriLankanHolidayMap(2030);
+    expect(map.get('2030-02-04')![0].name).toBe('National Day');
+    expect(map.get('2030-05-01')![0].name).toBe('Labour Day');
+    expect(map.get('2030-12-25')![0].name).toBe('Christmas Day');
+    // No guessed lunar holidays
+    expect([...map.values()].flat().filter((h) => h.type === 'poya')).toHaveLength(0);
+  });
+
+  it('merges holidays into collectCalendarEvents day map', () => {
+    const map = collectCalendarEvents({ goals: [] } as never, new Date(2026, 1, 10), getSriLankanHolidayMap(2026));
+    const day = map.get('2026-02-04')!;
+    expect(day.holidays).toHaveLength(1);
+    expect(day.holidays[0].name).toBe('National Day');
+    expect(day.goals).toHaveLength(0);
+    // Holiday-only days create entries even without events
+    expect(map.has('2026-05-01')).toBe(true);
+  });
+
+  it('leaves days untouched when no holiday map is provided', () => {
+    const map = collectCalendarEvents({ goals: [] } as never, new Date(2026, 1, 10));
+    expect(map.size).toBe(0);
   });
 });
 

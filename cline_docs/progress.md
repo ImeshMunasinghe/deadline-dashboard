@@ -12,6 +12,7 @@
 - Performance & polish pass: shared global countdown tick (1 interval for N cards), React.memo TaskItem, end-of-day `isOverdue`, `generateId()` recurrence clones, flash-free dark mode init, reflection modal via props, goal-category select in new-goal form, hardened `normalizeState`
 - Google Calendar-style calendar UX: mosaic grid, inline task creation and completion toggles, day panel, legend; local-date event building (UTC bug fixed)
 - TodayView task picker modal (search, grouped by goal, inline new-task creation) + manual "add to plan"; auto-plan covers all tasks
+- Sri Lankan public holidays on the calendar: curated 2025-2027 dataset (incl. all Poya days), holiday chips + day-panel rows + legend, fixed-date fallback for other years
 - Light-mode contrast improvements (CountdownCard, ProgressChart, TaskItem)
 - Recurring tasks, task dependencies (`blockedBy`), JSON export/import, URL goal share, confetti, streak
 - PWA setup; deadline notification digest with per-day dedupe; reminders toggle

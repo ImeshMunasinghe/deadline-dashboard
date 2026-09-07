@@ -371,6 +371,10 @@ export function buildMonthGrid(year: number, month: number /* 0-11 */, today: Da
   return days;
 }
 
+export type { HolidayInfo } from './holidays';
+export { getSriLankanHolidayMap } from './holidays';
+import type { HolidayInfo } from './holidays';
+
 export interface CalendarEvent {
   kind: 'goal' | 'task' | 'milestone';
   id: string;
@@ -388,12 +392,16 @@ export interface CalendarDayEvents {
   tasks: CalendarEvent[];
   milestones: CalendarEvent[];
   overdue: CalendarEvent[]; // tasks whose dueDate < today (surfaced on the day cell they're due... kept on due date)
+  holidays: HolidayInfo[];  // Sri Lankan public holidays (filled when a holiday map is provided)
 }
 
 // Flatten all dated items in state into a map of date → events.
+// `holidayMap` (optional): date → Sri Lankan holidays for the visible year,
+// as produced by getSriLankanHolidayMap.
 export function collectCalendarEvents(
   state: AppState,
-  today: Date = new Date()
+  today: Date = new Date(),
+  holidayMap?: Map<string, HolidayInfo[]>
 ): Map<string, CalendarDayEvents> {
   const map = new Map<string, CalendarDayEvents>();
   // Use local date components — toISOString() is UTC and can be a day behind in UTC+5:30
@@ -401,7 +409,7 @@ export function collectCalendarEvents(
 
   const push = (date: string, event: CalendarEvent) => {
     if (!map.has(date)) {
-      map.set(date, { goals: [], tasks: [], milestones: [], overdue: [] });
+      map.set(date, { goals: [], tasks: [], milestones: [], overdue: [], holidays: [] });
     }
     map.get(date)![event.kind === 'goal' ? 'goals' : event.kind === 'task' ? 'tasks' : 'milestones'].push(event);
     if (event.kind === 'task' && !event.completed && event.date < todayStr) {
@@ -445,6 +453,17 @@ export function collectCalendarEvents(
         priority: task.priority,
         completed: task.completed,
       });
+    }
+  }
+
+  // Merge holidays into the day map (a date can have a holiday but no events)
+  if (holidayMap) {
+    for (const [date, holidays] of holidayMap) {
+      if (holidays.length === 0) continue;
+      if (!map.has(date)) {
+        map.set(date, { goals: [], tasks: [], milestones: [], overdue: [], holidays: [] });
+      }
+      map.get(date)!.holidays.push(...holidays);
     }
   }
   return map;
