@@ -286,7 +286,7 @@ export function CountdownCard({ goal, dispatch }: CountdownCardProps) {
 
       {/* Urgency badge */}
       {!countdown.isExpired && countdown.days <= 3 && (
-        <div className="mt-4 text-xs text-red-400 bg-red-950/40 border border-red-900/50 rounded-lg px-3 py-1.5">
+        <div className="mt-4 text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/50 rounded-lg px-3 py-1.5">
           Final stretch — {countdown.days === 0 ? 'due today' : `${countdown.days} day${countdown.days === 1 ? '' : 's'} left`}
         </div>
       )}

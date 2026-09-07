@@ -68,7 +68,8 @@ export function ProgressChart({ goal }: ProgressChartProps) {
     { name: 'Remaining', value: stats.remaining },
   ];
 
-  const COLORS = ['#2563eb', '#262626'];
+  const isDark = document.documentElement.classList.contains('dark');
+  const COLORS = ['#2563eb', isDark ? '#262626' : '#e2e8f0'];
 
   // Priority breakdown
   const highCount  = goal.tasks.filter((t) => t.priority === 'high').length;
@@ -114,7 +115,7 @@ export function ProgressChart({ goal }: ProgressChartProps) {
       {stats.total === 0 ? (
         <div className="flex flex-col items-center justify-center py-8 text-center gap-2">
           <p className="text-sm text-slate-400 dark:text-neutral-600">No tasks yet</p>
-          <p className="text-xs text-slate-300 dark:text-neutral-700">Add tasks to see your progress here.</p>
+          <p className="text-xs text-slate-400 dark:text-neutral-700">Add tasks to see your progress here.</p>
         </div>
       ) : activeTab === 'donut' ? (
         <>
@@ -208,16 +209,16 @@ export function ProgressChart({ goal }: ProgressChartProps) {
                   <stop offset="95%" stopColor="#10b981" stopOpacity={0}   />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#262626" vertical={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#262626' : '#e2e8f0'} vertical={false} />
               <XAxis
                 dataKey="date"
-                tick={{ fontSize: 9, fill: '#525252' }}
+                tick={{ fontSize: 9, fill: isDark ? '#525252' : '#94a3b8' }}
                 axisLine={false}
                 tickLine={false}
               />
               <YAxis
                 allowDecimals={false}
-                tick={{ fontSize: 9, fill: '#525252' }}
+                tick={{ fontSize: 9, fill: isDark ? '#525252' : '#94a3b8' }}
                 axisLine={false}
                 tickLine={false}
               />

@@ -23,9 +23,9 @@ interface TaskItemProps {
 
 // Priority color system
 const PRIORITY_COLOR: Record<Priority, string> = {
-  high: 'text-red-400 bg-red-950/40 border-red-900/50',
-  medium: 'text-amber-400 bg-amber-950/40 border-amber-900/50',
-  low: 'text-emerald-400 bg-emerald-950/40 border-emerald-900/50',
+  high:   'text-red-600    dark:text-red-400    bg-red-50    dark:bg-red-950/40    border-red-200    dark:border-red-900/50',
+  medium: 'text-amber-600  dark:text-amber-400  bg-amber-50  dark:bg-amber-950/40  border-amber-200  dark:border-amber-900/50',
+  low:    'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-900/50',
 };
 
 const PRIORITY_DOT: Record<Priority, string> = {
@@ -78,7 +78,7 @@ function _TaskItem({ task, goalId, dispatch, dragHandleProps, availableTasks }: 
         task.completed
           ? 'bg-white dark:bg-neutral-900/50 border-slate-200 dark:border-neutral-800/50 opacity-60'
           : overdue
-          ? 'bg-amber-950/20 border-amber-900/40'
+          ? 'bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-900/40'
           : 'bg-white dark:bg-neutral-900 border-slate-200 dark:border-neutral-800'
       }`}
     >
@@ -162,10 +162,10 @@ function _TaskItem({ task, goalId, dispatch, dragHandleProps, availableTasks }: 
                 aria-label={task.dueDate ? 'Change due date' : 'Add due date'}
                 className={`flex items-center gap-1 text-[10px] transition-colors ${
                   overdue
-                    ? 'text-amber-400'
+                    ? 'text-amber-600 dark:text-amber-400'
                     : task.dueDate
-                    ? 'text-slate-400 dark:text-neutral-500 hover:text-slate-700 dark:text-neutral-300'
-                    : 'text-slate-300 dark:text-neutral-700 hover:text-slate-400 dark:text-neutral-500'
+                    ? 'text-slate-500 dark:text-neutral-500 hover:text-slate-700 dark:text-neutral-300'
+                    : 'text-slate-400 dark:text-neutral-700 hover:text-slate-500 dark:text-neutral-500'
                 }`}
               >
                 <Calendar size={10} />
@@ -203,7 +203,9 @@ function _TaskItem({ task, goalId, dispatch, dragHandleProps, availableTasks }: 
                 onClick={() => setEditingMinutes(true)}
                 aria-label={task.estimatedMinutes ? 'Edit minutes' : 'Add minutes'}
                 className={`flex items-center gap-1 text-[10px] transition-colors ${
-                  task.estimatedMinutes ? 'text-slate-400 dark:text-neutral-500 hover:text-slate-700 dark:text-neutral-300' : 'text-slate-300 dark:text-neutral-700 hover:text-slate-400 dark:text-neutral-500'
+                  task.estimatedMinutes
+                    ? 'text-slate-500 dark:text-neutral-500 hover:text-slate-700 dark:text-neutral-300'
+                    : 'text-slate-400 dark:text-neutral-700 hover:text-slate-500 dark:text-neutral-500'
                 }`}
               >
                 <Clock size={10} />
@@ -227,7 +229,9 @@ function _TaskItem({ task, goalId, dispatch, dragHandleProps, availableTasks }: 
                 payload: { goalId, taskId: task.id, updates: { recurrence: e.target.value ? e.target.value as any : null } }
               })}
               className={`text-[10px] bg-transparent outline-none cursor-pointer transition-colors ${
-                task.recurrence ? 'text-slate-400 dark:text-neutral-500' : 'text-slate-300 dark:text-neutral-700'
+                task.recurrence
+                  ? 'text-slate-500 dark:text-neutral-500'
+                  : 'text-slate-400 dark:text-neutral-700'
               }`}
             >
               <option value="">No Repeat</option>
@@ -245,7 +249,9 @@ function _TaskItem({ task, goalId, dispatch, dragHandleProps, availableTasks }: 
                   payload: { goalId, taskId: task.id, updates: { blockedBy: e.target.value || null } }
                 })}
                 className={`text-[10px] bg-transparent outline-none cursor-pointer transition-colors max-w-[80px] truncate ${
-                  task.blockedBy ? 'text-slate-400 dark:text-neutral-500' : 'text-slate-300 dark:text-neutral-700'
+                  task.blockedBy
+                    ? 'text-slate-500 dark:text-neutral-500'
+                    : 'text-slate-400 dark:text-neutral-700'
                 }`}
                 title="Blocked By"
               >
