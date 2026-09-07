@@ -1,6 +1,11 @@
 # Active Context
 
 ## Current State
+- **Performance/bugfix/UX pass merged by user** (`3edf759`, 2026-09-07):
+  - Rendering: single shared module-level tick replaces one setInterval per CountdownCard; TaskItem wrapped in React.memo with useCallback handlers.
+  - Bug fixes: `isOverdue` now compares end-of-day (tasks due today are no longer overdue at midnight); recurrence clones use `generateId()`; dark-mode init reads localStorage before paint (no theme flash); Reflection modal opened via props/state in App instead of custom DOM events.
+  - Data integrity: `LOG_FOCUS_TIME` short-circuits goals without the target task; `normalizeState` explicitly defaults all Task fields.
+  - UX: new-goal form includes a GoalCategory select (Work/Personal/Health/Learning/Other).
 - **Calendar is the default home view** (2026-09-06):
   - `activeView` now includes `'calendar'`; `initialState.activeView = 'calendar'` (existing users' stored view is respected, Calendar is first in the sidebar).
   - `CalendarView` component: Monday-start 6-week month grid, month nav + Today button, day chips for goal deadlines (blue, Target icon), milestones (violet, Flag), tasks (priority dot, completed struck through, overdue dates in red), "+N more" overflow, click-day side detail panel, click-item jumps to its goal.

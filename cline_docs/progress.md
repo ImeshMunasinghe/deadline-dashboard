@@ -9,6 +9,7 @@
 - Calendar home view (default): month grid with goals/tasks/milestones, day detail panel, theme-aware, tested utils
 - Analytics view (Recharts, theme-aware) incl. "Focus Time vs Estimates" card
 - Inbox + QuickCapture; PomodoroTimer (25/5, focus-target selector, logs `actualMinutes`); DailyReflection; EmptyState
+- Performance & polish pass: shared global countdown tick (1 interval for N cards), React.memo TaskItem, end-of-day `isOverdue`, `generateId()` recurrence clones, flash-free dark mode init, reflection modal via props, goal-category select in new-goal form, hardened `normalizeState`
 - Recurring tasks, task dependencies (`blockedBy`), JSON export/import, URL goal share, confetti, streak
 - PWA setup; deadline notification digest with per-day dedupe; reminders toggle
 - UI foundation: @fontsource Inter/JetBrains Mono, shared component classes, focus-visible rings, a11y fixes, no emojis anywhere

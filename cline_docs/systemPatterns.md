@@ -46,5 +46,10 @@ Key invariants:
 - `buildMonthGrid` (Monday-start, 42 cells, local-date safe) + `collectCalendarEvents` (date → goal/task/milestone events with overdue tracking) power the default home view; clicking an item navigates to its goal via `SET_ACTIVE_VIEW` + `SET_ACTIVE_GOAL`.
 
 ## Recurrence & Dependency Semantics
-- Completing a recurring task schedules the next occurrence (daily +1d, weekly +7d, monthly +1mo) and un-completes it.
+- Completing a recurring task schedules the next occurrence (daily +1d, weekly +7d, monthly +1mo) and un-completes it; clones get fresh IDs via `generateId()`.
 - `blockedBy` holds another task's id; UI surfaces blocked state (see `TaskItem`).
+
+## Performance Patterns
+- One shared module-level tick drives all countdowns (`hooks/index.ts`) instead of per-component intervals.
+- `TaskItem` is memoized (`React.memo`) with stable `useCallback` handlers so countdown ticks do not re-render task lists.
+- `isOverdue` compares against end-of-day, so tasks due later today are not flagged overdue.
