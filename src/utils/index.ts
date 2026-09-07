@@ -61,7 +61,11 @@ export function getTaskStats(goal: Goal) {
 
 export function isOverdue(dueDateISO: string | null): boolean {
   if (!dueDateISO) return false;
-  return new Date(dueDateISO).getTime() < Date.now();
+  // For date-only strings (YYYY-MM-DD), treat end-of-that-day as the cutoff
+  // so a task due today is NOT overdue until the day actually ends.
+  const due = new Date(dueDateISO);
+  const endOfDue = new Date(due.getFullYear(), due.getMonth(), due.getDate(), 23, 59, 59, 999);
+  return endOfDue.getTime() < Date.now();
 }
 
 export function formatDate(isoString: string): string {
@@ -245,7 +249,20 @@ export function computePace(goal: Goal, now: Date = new Date()): GoalPace {
 // Ensures tasks carry fields added after initial release (e.g. actualMinutes).
 
 export function normalizeState(state: AppState): AppState {
-  const fixTask = (t: Task): Task => ({ ...t, actualMinutes: t.actualMinutes ?? 0 });
+  const fixTask = (t: Task): Task => ({
+    id: t.id,
+    text: t.text,
+    completed: t.completed ?? false,
+    priority: t.priority ?? 'medium',
+    dueDate: t.dueDate ?? null,
+    subtasks: (t.subtasks ?? []).map((s) => ({ id: s.id, text: s.text, completed: s.completed ?? false })),
+    createdAt: t.createdAt ?? new Date().toISOString(),
+    completedAt: t.completedAt ?? null,
+    estimatedMinutes: t.estimatedMinutes ?? null,
+    actualMinutes: t.actualMinutes ?? 0,
+    recurrence: t.recurrence ?? null,
+    blockedBy: t.blockedBy ?? null,
+  });
   return {
     ...state,
     goals: (state.goals ?? []).map((g) => ({ ...g, tasks: (g.tasks ?? []).map(fixTask) })),

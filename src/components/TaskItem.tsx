@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, memo } from 'react';
 import {
   Trash2,
   ChevronDown,
@@ -34,7 +34,7 @@ const PRIORITY_DOT: Record<Priority, string> = {
   low: 'bg-emerald-500',
 };
 
-export function TaskItem({ task, goalId, dispatch, dragHandleProps, availableTasks }: TaskItemProps) {
+function _TaskItem({ task, goalId, dispatch, dragHandleProps, availableTasks }: TaskItemProps) {
   const [expanded, setExpanded] = useState(false);
   const [addingSubtask, setAddingSubtask] = useState(false);
   const [subtaskText, setSubtaskText] = useState('');
@@ -58,11 +58,19 @@ export function TaskItem({ task, goalId, dispatch, dragHandleProps, availableTas
     setAddingSubtask(false);
   }
 
-  function cyclePriority() {
+  const cyclePriority = useCallback(() => {
     const order: Priority[] = ['low', 'medium', 'high'];
     const next = order[(order.indexOf(task.priority) + 1) % order.length];
     dispatch({ type: 'UPDATE_TASK', payload: { goalId, taskId: task.id, updates: { priority: next } } });
-  }
+  }, [dispatch, goalId, task.id, task.priority]);
+
+  const handleToggle = useCallback(() => {
+    dispatch({ type: 'TOGGLE_TASK', payload: { goalId, taskId: task.id } });
+  }, [dispatch, goalId, task.id]);
+
+  const handleDelete = useCallback(() => {
+    dispatch({ type: 'DELETE_TASK', payload: { goalId, taskId: task.id } });
+  }, [dispatch, goalId, task.id]);
 
   return (
     <li
@@ -87,7 +95,7 @@ export function TaskItem({ task, goalId, dispatch, dragHandleProps, availableTas
         {/* Checkbox */}
         <button
           disabled={!!isBlocked}
-          onClick={() => dispatch({ type: 'TOGGLE_TASK', payload: { goalId, taskId: task.id } })}
+          onClick={handleToggle}
           aria-label={task.completed ? 'Mark task incomplete' : 'Mark task complete'}
           className={`shrink-0 mt-0.5 w-4 h-4 rounded border transition-all ${
             isBlocked
@@ -276,7 +284,7 @@ export function TaskItem({ task, goalId, dispatch, dragHandleProps, availableTas
             <Plus size={13} />
           </button>
           <button
-            onClick={() => dispatch({ type: 'DELETE_TASK', payload: { goalId, taskId: task.id } })}
+            onClick={handleDelete}
             aria-label="Delete task"
             className="p-1 text-slate-300 dark:text-neutral-700 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
           >
@@ -352,3 +360,5 @@ export function TaskItem({ task, goalId, dispatch, dragHandleProps, availableTas
     </li>
   );
 }
+
+export const TaskItem = memo(_TaskItem);

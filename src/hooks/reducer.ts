@@ -1,5 +1,5 @@
 import type { AppState, AppAction, Task } from '../types';
-import { normalizeState } from '../utils';
+import { normalizeState, generateId } from '../utils';
 
 // ─── Initial State ────────────────────────────────────────────────────────
 
@@ -117,13 +117,13 @@ export function appReducer(state: AppState, action: AppAction): AppState {
             
             const clonedTask = {
               ...t,
-              id: Math.random().toString(36).substr(2, 9),
+              id: generateId(),
               completed: false,
               completedAt: null,
               createdAt: now,
               dueDate: nextDue.toISOString().split('T')[0],
               actualMinutes: 0,
-              subtasks: t.subtasks.map(st => ({ ...st, id: Math.random().toString(36).substr(2, 9), completed: false }))
+              subtasks: t.subtasks.map(st => ({ ...st, id: generateId(), completed: false }))
             };
             newTasks.push(clonedTask);
           }
@@ -343,8 +343,12 @@ export function appReducer(state: AppState, action: AppAction): AppState {
       const bump = (t: Task): Task => (t.id === taskId ? { ...t, actualMinutes: t.actualMinutes + minutes } : t);
       return {
         ...state,
-        goals: state.goals.map((g) => ({ ...g, tasks: g.tasks.map(bump) })),
-        inbox: state.inbox.map(bump),
+        // Only rebuild goals that actually contain the task — skip the rest entirely
+        goals: state.goals.map((g) => {
+          if (!g.tasks.some((t) => t.id === taskId)) return g;
+          return { ...g, tasks: g.tasks.map(bump) };
+        }),
+        inbox: state.inbox.some((t) => t.id === taskId) ? state.inbox.map(bump) : state.inbox,
       };
     }
 

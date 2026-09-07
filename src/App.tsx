@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Sidebar, BottomToolbar } from './components/Sidebar';
 import { CountdownCard } from './components/CountdownCard';
 import { TaskList } from './components/TaskList';
@@ -45,6 +45,21 @@ function GoalView({ activeGoal, dispatch }: { activeGoal: Goal | null, dispatch:
 
 export default function App() {
   const { state, dispatch } = useAppState();
+
+  // ── Reflection open state (lifted here to avoid DOM custom events) ──────
+  const [reflectionOpen, setReflectionOpen] = useState(false);
+
+  // Auto-open reflection after 5 PM once per day
+  useEffect(() => {
+    const todayStr = new Date().toISOString().split('T')[0];
+    const hasReflectedToday = state.reflections.some(
+      (r) => r.date === todayStr && r.date !== '__trigger__'
+    );
+    const hour = new Date().getHours();
+    if (hour >= 17 && !hasReflectedToday) {
+      setReflectionOpen(true);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Handle read-only share param on load
   useEffect(() => {
@@ -119,7 +134,7 @@ export default function App() {
   return (
     <div className="flex min-h-screen bg-slate-50 dark:bg-neutral-950 text-slate-800 dark:text-neutral-200 font-sans">
       {/* ── Sidebar */}
-      <Sidebar state={state} dispatch={dispatch} />
+      <Sidebar state={state} dispatch={dispatch} onOpenReflection={() => setReflectionOpen(true)} />
 
       {/* ── Main area */}
       <main className="flex-1 flex flex-col overflow-y-auto">
@@ -134,7 +149,12 @@ export default function App() {
       {/* ── Floating Pomodoro Timer — always visible in the bottom-right corner */}
       <PomodoroTimer state={state} dispatch={dispatch} />
       <QuickCapture dispatch={dispatch} />
-      <DailyReflection state={state} dispatch={dispatch} />
+      <DailyReflection
+        state={state}
+        dispatch={dispatch}
+        isOpen={reflectionOpen}
+        onClose={() => setReflectionOpen(false)}
+      />
       <BottomToolbar state={state} dispatch={dispatch} />
     </div>
   );

@@ -17,7 +17,7 @@ import {
   BookOpen,
   Bell
 } from 'lucide-react';
-import type { Goal, AppState } from '../types';
+import type { Goal, AppState, GoalCategory } from '../types';
 import type { AppAction } from '../types';
 import { generateId, exportStateAsJSON, parseImportedState, formatDate } from '../utils';
 import { PaceBadge } from './CountdownCard';
@@ -25,11 +25,12 @@ import { PaceBadge } from './CountdownCard';
 interface SidebarProps {
   state: AppState;
   dispatch: React.Dispatch<AppAction>;
+  onOpenReflection: () => void;
 }
 
 // ── Fixed bottom-left toolbar ──────────────────────────────────────────────
 export function BottomToolbar({ state, dispatch }: { state: AppState; dispatch: React.Dispatch<AppAction> }) {
-  const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains('dark'));
+  const [isDark, setIsDark] = useState(() => localStorage.getItem('theme') === 'dark');
 
   useEffect(() => {
     if (isDark) {
@@ -107,11 +108,12 @@ export function BottomToolbar({ state, dispatch }: { state: AppState; dispatch: 
 }
 
 // ── Main sidebar ───────────────────────────────────────────────────────────
-export function Sidebar({ state, dispatch }: SidebarProps) {
+export function Sidebar({ state, dispatch, onOpenReflection }: SidebarProps) {
   const [showNewGoal, setShowNewGoal] = useState(false);
   const [newTitle, setNewTitle] = useState('');
   const [newDate, setNewDate] = useState('');
   const [newTime, setNewTime] = useState('');
+  const [newCategory, setNewCategory] = useState<GoalCategory>('Work');
   const [isOpen, setIsOpen] = useState(false);
 
   function handleAddGoal() {
@@ -129,13 +131,14 @@ export function Sidebar({ state, dispatch }: SidebarProps) {
       notes: '',
       milestones: [],
       createdAt: new Date().toISOString(),
-      category: 'Work',
+      category: newCategory,
       color: 'bg-blue-600',
     };
     dispatch({ type: 'ADD_GOAL', payload: goal });
     setNewTitle('');
     setNewDate('');
     setNewTime('');
+    setNewCategory('Work');
     setShowNewGoal(false);
   }
 
@@ -198,7 +201,7 @@ export function Sidebar({ state, dispatch }: SidebarProps) {
             onClick={() => {
               dispatch({ type: 'SET_ACTIVE_VIEW', payload: { view: 'analytics' } });
               setIsOpen(false);
-              setTimeout(() => window.dispatchEvent(new CustomEvent('open-reflection')), 100);
+              onOpenReflection();
             }}
             className="flex items-center gap-2 px-2 py-2 rounded-lg text-left text-xs font-medium transition-all text-slate-500 dark:text-neutral-400 hover:bg-slate-100 dark:hover:bg-neutral-900 hover:text-slate-800 dark:hover:text-neutral-200"
           >
@@ -254,6 +257,16 @@ export function Sidebar({ state, dispatch }: SidebarProps) {
               aria-label="Goal target time (optional)"
               className="w-full text-xs bg-slate-50 dark:bg-neutral-800 text-slate-800 dark:text-neutral-200 rounded-lg px-2 py-1.5 outline-none border border-slate-200 dark:border-neutral-700 focus:border-blue-500 cursor-pointer"
             />
+            <select
+              value={newCategory}
+              onChange={(e) => setNewCategory(e.target.value as GoalCategory)}
+              aria-label="Goal category"
+              className="w-full text-xs bg-slate-50 dark:bg-neutral-800 text-slate-800 dark:text-neutral-200 rounded-lg px-2 py-1.5 outline-none border border-slate-200 dark:border-neutral-700 focus:border-blue-500 cursor-pointer"
+            >
+              {(['Work', 'Personal', 'Health', 'Learning', 'Other'] as GoalCategory[]).map((cat) => (
+                <option key={cat} value={cat}>{cat}</option>
+              ))}
+            </select>
             <div className="flex gap-2">
               <button
                 onClick={handleAddGoal}

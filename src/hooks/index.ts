@@ -1,7 +1,32 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import type { AppState, AppAction, CountdownState } from '../types';
 import { appReducer, initialState } from './reducer';
 import { computeCountdown, normalizeState } from '../utils';
+
+// ─── useGlobalTick ────────────────────────────────────────────────────────
+// Module-level single interval that drives ALL useCountdown consumers.
+// Instead of one setInterval per mounted CountdownCard, we share one.
+
+type TickListener = () => void;
+const tickListeners = new Set<TickListener>();
+let globalIntervalId: ReturnType<typeof setInterval> | null = null;
+
+function addTickListener(fn: TickListener) {
+  tickListeners.add(fn);
+  if (!globalIntervalId) {
+    globalIntervalId = setInterval(() => {
+      tickListeners.forEach((cb) => cb());
+    }, 1000);
+  }
+}
+
+function removeTickListener(fn: TickListener) {
+  tickListeners.delete(fn);
+  if (tickListeners.size === 0 && globalIntervalId !== null) {
+    clearInterval(globalIntervalId);
+    globalIntervalId = null;
+  }
+}
 
 const STORAGE_KEY = 'deadline-dashboard-v2';
 
@@ -99,7 +124,8 @@ export function useAppState() {
 }
 
 // ─── useCountdown ──────────────────────────────────────────────────────────
-// Ticks every second. Returns a stable CountdownState object.
+// Subscribes to the shared global tick instead of creating its own interval.
+// All mounted CountdownCards share a single setInterval.
 
 export function useCountdown(
   targetDateISO: string,
@@ -112,17 +138,24 @@ export function useCountdown(
 
   const [countdown, setCountdown] = useState<CountdownState>(compute);
 
+  // Keep compute stable ref so the tick listener always uses the latest version
+  const computeRef = useRef(compute);
+  useEffect(() => { computeRef.current = compute; }, [compute]);
+
   useEffect(() => {
-    setCountdown(compute());
-    if (compute().isExpired) return;
+    // Sync immediately when inputs change
+    const initial = compute();
+    setCountdown(initial);
+    if (initial.isExpired) return;
 
-    const id = setInterval(() => {
-      const next = compute();
+    const tick = () => {
+      const next = computeRef.current();
       setCountdown(next);
-      if (next.isExpired) clearInterval(id);
-    }, 1000);
+      if (next.isExpired) removeTickListener(tick);
+    };
 
-    return () => clearInterval(id);
+    addTickListener(tick);
+    return () => removeTickListener(tick);
   }, [compute]);
 
   return countdown;

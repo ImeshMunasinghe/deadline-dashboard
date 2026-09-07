@@ -1,39 +1,24 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import type { AppState, AppAction } from '../types';
 
 interface DailyReflectionProps {
   state: AppState;
   dispatch: React.Dispatch<AppAction>;
+  isOpen: boolean;
+  onClose: () => void;
 }
 
-export function DailyReflection({ state, dispatch }: DailyReflectionProps) {
-  const [isOpen, setIsOpen] = useState(false);
+export function DailyReflection({ state: _state, dispatch, isOpen, onClose }: DailyReflectionProps) {
   const [content, setContent] = useState('');
 
-  // Trigger: end of day (after 5 PM), once per day
-  useEffect(() => {
-    const todayStr = new Date().toISOString().split('T')[0];
-    const hasReflectedToday = state.reflections.some(
-      (r) => r.date === todayStr && r.date !== '__trigger__'
-    );
-    const hour = new Date().getHours();
-    if (hour >= 17 && !hasReflectedToday) {
-      setIsOpen(true);
-    }
-  }, []); // Only on mount
-
-  // Also open via the custom event fired from AnalyticsView
-  useEffect(() => {
-    const handler = () => setIsOpen(true);
-    window.addEventListener('open-reflection', handler);
-    return () => window.removeEventListener('open-reflection', handler);
-  }, []);
+  // Auto-open at end of day (after 5 PM), once per day — handled by parent App.tsx
+  // The `isOpen` prop drives visibility directly.
 
   if (!isOpen) return null;
 
   function handleSave() {
     if (!content.trim()) {
-      setIsOpen(false);
+      onClose();
       return;
     }
     const todayStr = new Date().toISOString().split('T')[0];
@@ -42,7 +27,7 @@ export function DailyReflection({ state, dispatch }: DailyReflectionProps) {
       payload: { reflection: { date: todayStr, content: content.trim() } },
     });
     setContent('');
-    setIsOpen(false);
+    onClose();
   }
 
   return (
@@ -76,7 +61,7 @@ export function DailyReflection({ state, dispatch }: DailyReflectionProps) {
           <span className="text-xs text-slate-400 dark:text-neutral-600">Ctrl+Enter to save</span>
           <div className="flex gap-2">
             <button
-              onClick={() => setIsOpen(false)}
+              onClick={onClose}
               className="px-4 py-2 rounded-lg text-sm font-medium text-slate-500 dark:text-neutral-400 hover:text-slate-800 dark:hover:text-neutral-200 transition-colors"
             >
               Skip
