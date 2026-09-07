@@ -396,7 +396,8 @@ export function collectCalendarEvents(
   today: Date = new Date()
 ): Map<string, CalendarDayEvents> {
   const map = new Map<string, CalendarDayEvents>();
-  const todayStr = today.toISOString().split('T')[0];
+  // Use local date components — toISOString() is UTC and can be a day behind in UTC+5:30
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 
   const push = (date: string, event: CalendarEvent) => {
     if (!map.has(date)) {
