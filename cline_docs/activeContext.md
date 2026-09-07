@@ -1,6 +1,7 @@
 # Active Context
 
 ## Current State
+- **Today picker can create new tasks** (2026-09-07): TaskPickerModal in TodayView now includes an inline "Create new task" form (description, goal select, priority select, due date pre-filled to today); Enter or the Add button dispatches `ADD_TASK` and immediately adds the new task to today's plan via `onAdd`. When no goals exist the form is replaced by a "Create a goal first" hint. Verified: `tsc`, `vite build`, and 15 Vitest tests all pass.
 - **Google Calendar-style UX + Today task picker** (`2005e11`, 2026-09-07):
   - CalendarView: fixed stale-today and UTC-vs-local date bugs (events now built from local date components); mosaic grid (gap-px layout); inline completion toggles on task chips and in the day panel; "+Add" inline task creation form (text, goal, priority, due date pre-filled); legend row; day panel close button.
   - TodayView: "+Add task" opens a TaskPickerModal (all incomplete tasks grouped by goal, with search); planned tasks shown disabled; "Add to plan" on unplanned due-today rows; auto-plan now considers all tasks, not just due-today.

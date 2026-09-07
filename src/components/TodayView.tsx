@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { ListChecks, ArrowUp, ArrowDown, X, Search, Plus, CheckCircle2 } from 'lucide-react';
-import type { AppState, AppAction, Task } from '../types';
-import { isOverdue, todayISO, computeDailyPlan } from '../utils';
+import type { AppState, AppAction, Task, Priority } from '../types';
+import { isOverdue, todayISO, computeDailyPlan, generateId } from '../utils';
 import type { PlanCandidate } from '../utils';
 import { TaskItem } from './TaskItem';
 
@@ -21,16 +21,22 @@ interface TodayTask {
 // ── Task picker modal — lets users manually add any task to today's plan ──────
 function TaskPickerModal({
   state,
+  dispatch,
   currentPlanIds,
   onAdd,
   onClose,
 }: {
   state: AppState;
+  dispatch: React.Dispatch<AppAction>;
   currentPlanIds: Set<string>;
   onAdd: (taskId: string) => void;
   onClose: () => void;
 }) {
   const [search, setSearch] = useState('');
+  const [newText, setNewText] = useState('');
+  const [newGoalId, setNewGoalId] = useState(state.goals[0]?.id ?? '');
+  const [newPriority, setNewPriority] = useState<Priority>('medium');
+  const [newDueDate, setNewDueDate] = useState(todayISO());
 
   const grouped = useMemo(() => {
     const q = search.toLowerCase().trim();
@@ -50,6 +56,30 @@ function TaskPickerModal({
     (sum, g) => sum + g.tasks.filter((t) => !t.completed).length,
     0
   );
+
+  // Create a new task and add it to today's plan
+  function createTask() {
+    if (!newText.trim() || !newGoalId) return;
+    const task: Task = {
+      id: generateId(),
+      text: newText.trim(),
+      completed: false,
+      priority: newPriority,
+      dueDate: newDueDate || todayISO(),
+      subtasks: [],
+      createdAt: new Date().toISOString(),
+      completedAt: null,
+      estimatedMinutes: null,
+      actualMinutes: 0,
+      recurrence: null,
+      blockedBy: null,
+    };
+    dispatch({ type: 'ADD_TASK', payload: { goalId: newGoalId, task } });
+    onAdd(task.id);
+    setNewText('');
+    setNewPriority('medium');
+    setNewDueDate(todayISO());
+  }
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
@@ -95,6 +125,82 @@ function TaskPickerModal({
                 border border-slate-200 dark:border-neutral-700 focus:border-blue-500 transition-colors"
             />
           </div>
+        </div>
+
+        {/* Create new task */}
+        <div className="px-5 pb-4 shrink-0 border-b border-slate-200 dark:border-neutral-800">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-neutral-500 mb-2">
+            Create new task
+          </p>
+          {state.goals.length === 0 ? (
+            <p className="text-xs text-slate-400 dark:text-neutral-500">
+              Create a goal first to add tasks.
+            </p>
+          ) : (
+            <div className="flex flex-col gap-2">
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="New task description..."
+                  value={newText}
+                  onChange={(e) => setNewText(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') createTask();
+                    if (e.key === 'Escape') setNewText('');
+                  }}
+                  className="flex-1 text-sm bg-slate-50 dark:bg-neutral-800 text-slate-800 dark:text-neutral-200
+                    placeholder-slate-400 dark:placeholder-neutral-500 rounded-lg px-3 py-2 outline-none
+                    border border-slate-200 dark:border-neutral-700 focus:border-blue-500 transition-colors"
+                />
+                <button
+                  onClick={createTask}
+                  disabled={!newText.trim()}
+                  aria-label="Create task and add to plan"
+                  className="shrink-0 bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-3 py-2
+                    text-sm font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  Add
+                </button>
+              </div>
+              <div className="flex gap-2">
+                <select
+                  value={newGoalId}
+                  onChange={(e) => setNewGoalId(e.target.value)}
+                  aria-label="Goal for new task"
+                  className="flex-1 min-w-0 text-xs bg-slate-50 dark:bg-neutral-800 text-slate-700 dark:text-neutral-200
+                    rounded-lg px-2 py-1.5 outline-none border border-slate-200 dark:border-neutral-700
+                    focus:border-blue-500 transition-colors"
+                >
+                  {state.goals.map((g) => (
+                    <option key={g.id} value={g.id}>
+                      {g.title}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  value={newPriority}
+                  onChange={(e) => setNewPriority(e.target.value as Priority)}
+                  aria-label="Priority for new task"
+                  className="text-xs bg-slate-50 dark:bg-neutral-800 text-slate-700 dark:text-neutral-200
+                    rounded-lg px-2 py-1.5 outline-none border border-slate-200 dark:border-neutral-700
+                    focus:border-blue-500 transition-colors"
+                >
+                  <option value="high">High</option>
+                  <option value="medium">Medium</option>
+                  <option value="low">Low</option>
+                </select>
+                <input
+                  type="date"
+                  value={newDueDate}
+                  onChange={(e) => setNewDueDate(e.target.value)}
+                  aria-label="Due date for new task"
+                  className="text-xs bg-slate-50 dark:bg-neutral-800 text-slate-700 dark:text-neutral-200
+                    rounded-lg px-2 py-1.5 outline-none border border-slate-200 dark:border-neutral-700
+                    focus:border-blue-500 transition-colors"
+                />
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Task list */}
@@ -299,6 +405,7 @@ export function TodayView({ state, dispatch }: TodayViewProps) {
       {showPicker && (
         <TaskPickerModal
           state={state}
+          dispatch={dispatch}
           currentPlanIds={currentPlanIds}
           onAdd={handleAddToPlan}
           onClose={() => setShowPicker(false)}
