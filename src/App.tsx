@@ -9,13 +9,26 @@ import { EmptyState } from './components/EmptyState';
 import { TodayView } from './components/TodayView';
 import { AnalyticsView } from './components/AnalyticsView';
 import { CalendarView } from './components/CalendarView';
+import { PlannerView } from './components/PlannerView';
+import { TimelineView } from './components/TimelineView';
+import { ThemeSettings } from './components/ThemeSettings';
+import { CommandPalette } from './components/CommandPalette';
+import { FocusMode } from './components/FocusMode';
 import { QuickCapture } from './components/QuickCapture';
 import { DailyReflection } from './components/DailyReflection';
+import { ShareView } from './components/ShareView';
+import { ReportView } from './components/ReportView';
 import { useAppState } from './hooks';
-import { decodeGoalShare, generateId, getTaskStats, computeDeadlineNotifications, filterUnnotified } from './utils';
+import { decodeGoalShare, generateId, getTaskStats, computeDeadlineNotifications, filterUnnotified, parseSmartInput } from './utils';
 import type { Goal, AppAction } from './types';
 
-function GoalView({ activeGoal, dispatch }: { activeGoal: Goal | null, dispatch: React.Dispatch<AppAction> }) {
+function hexToRgb(hex: string): string | null {
+  const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  if (!m) return null;
+  return `${parseInt(m[1], 16)},${parseInt(m[2], 16)},${parseInt(m[3], 16)}`;
+}
+
+function GoalView({ activeGoal, dispatch, onReport }: { activeGoal: Goal | null, dispatch: React.Dispatch<AppAction>, onReport?: (goal: Goal) => void }) {
   if (!activeGoal) return <EmptyState />;
   
   return (
@@ -23,7 +36,7 @@ function GoalView({ activeGoal, dispatch }: { activeGoal: Goal | null, dispatch:
       {/* Row 1: Countdown (wide) + Chart */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="lg:col-span-2">
-          <CountdownCard goal={activeGoal} dispatch={dispatch} />
+          <CountdownCard goal={activeGoal} dispatch={dispatch} onReport={onReport} />
         </div>
         <div>
           <ProgressChart goal={activeGoal} />
@@ -46,8 +59,34 @@ function GoalView({ activeGoal, dispatch }: { activeGoal: Goal | null, dispatch:
 export default function App() {
   const { state, dispatch } = useAppState();
 
+  // Read-only share view: when a ?share= param is present, we show the public
+  // ShareView instead of importing the goal into the app.
+  const [sharedGoal, setSharedGoal] = useState<Goal | null>(null);
+
+  // Report view: when set, shows a printable report for the given goal
+  const [reportGoal, setReportGoal] = useState<Goal | null>(null);
+
   // ── Reflection open state (lifted here to avoid DOM custom events) ──────
   const [reflectionOpen, setReflectionOpen] = useState(false);
+  const [themeOpen, setThemeOpen] = useState(false);
+  const [paletteOpen, setPaletteOpen] = useState(false);
+  const [focusOpen, setFocusOpen] = useState(false);
+
+  // Global shortcuts: Ctrl+P palette, Ctrl+G focus mode
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const mod = e.ctrlKey || e.metaKey;
+      if (mod && e.key.toLowerCase() === 'p') {
+        e.preventDefault();
+        setPaletteOpen((v) => !v);
+      } else if (mod && e.key.toLowerCase() === 'g') {
+        e.preventDefault();
+        setFocusOpen((v) => !v);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
 
   // Auto-open reflection after 5 PM once per day
   useEffect(() => {
@@ -61,27 +100,58 @@ export default function App() {
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Handle read-only share param on load
+  // Handle read-only share param on load — show public ShareView
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const shareParam = params.get('share');
     if (!shareParam) return;
 
-    const sharedGoal = decodeGoalShare(shareParam);
-    if (!sharedGoal) return;
+    const decoded = decodeGoalShare(shareParam);
+    if (!decoded) return;
 
-    // Import as a new goal (give it a fresh ID to avoid collision)
-    const imported: Goal = {
-      ...sharedGoal,
-      id: generateId(),
-      title: `${sharedGoal.title} (shared)`,
-    };
-
-    dispatch({ type: 'ADD_GOAL', payload: imported });
+    setSharedGoal(decoded);
 
     // Clean the URL without reloading
     const clean = new URL(window.location.href);
     clean.searchParams.delete('share');
+    window.history.replaceState({}, '', clean.toString());
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Handle PWA share-target: when the app is opened via the OS share sheet,
+  // shared text is captured as a new inbox task.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (!params.has('share-target')) return;
+
+    const title = params.get('title') ?? '';
+    const text = params.get('text') ?? '';
+    const url = params.get('url') ?? '';
+    const combined = [title, text, url].filter(Boolean).join(' ');
+    if (!combined.trim()) return;
+
+    const parsed = parseSmartInput(combined.trim());
+    const task = {
+      id: generateId(),
+      text: parsed.text || combined.trim(),
+      completed: false,
+      priority: parsed.priority,
+      dueDate: parsed.dueDate,
+      subtasks: [],
+      createdAt: new Date().toISOString(),
+      completedAt: null,
+      estimatedMinutes: parsed.estimatedMinutes,
+      actualMinutes: 0,
+      recurrence: parsed.recurrence,
+      blockedBy: parsed.blockedBy,
+    };
+    dispatch({ type: 'ADD_TO_INBOX', payload: { task } });
+
+    // Clean the URL without reloading
+    const clean = new URL(window.location.href);
+    clean.searchParams.delete('share-target');
+    clean.searchParams.delete('title');
+    clean.searchParams.delete('text');
+    clean.searchParams.delete('url');
     window.history.replaceState({}, '', clean.toString());
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -94,6 +164,13 @@ export default function App() {
       new Notification(n.title, { body: n.body });
     });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Apply accent colour as a CSS variable for theme-aware components
+  useEffect(() => {
+    const root = document.documentElement;
+    root.style.setProperty('--accent', state.accent);
+    root.style.setProperty('--accent-rgb', hexToRgb(state.accent) ?? '37,99,235');
+  }, [state.accent]);
 
   const activeGoal = state.goals.find((g) => g.id === state.activeGoalId) ?? null;
 
@@ -131,6 +208,16 @@ export default function App() {
     prevPercent.current = percent;
   }, [activeGoal]);
 
+  // Read-only share view takes over the entire UI
+  if (sharedGoal) {
+    return <ShareView goal={sharedGoal} />;
+  }
+
+  // Report view takes over the entire UI (print-friendly)
+  if (reportGoal) {
+    return <ReportView goal={reportGoal} onClose={() => setReportGoal(null)} />;
+  }
+
   return (
     <div className="flex min-h-screen bg-slate-50 dark:bg-neutral-950 text-slate-800 dark:text-neutral-200 font-sans">
       {/* ── Sidebar */}
@@ -141,8 +228,10 @@ export default function App() {
         {state.activeView === 'calendar' && <CalendarView state={state} dispatch={dispatch} />}
         {state.activeView === 'today' && <TodayView state={state} dispatch={dispatch} />}
         {state.activeView === 'analytics' && <AnalyticsView state={state} dispatch={dispatch} />}
+        {state.activeView === 'planner' && <PlannerView state={state} dispatch={dispatch} />}
+        {state.activeView === 'timeline' && <TimelineView state={state} dispatch={dispatch} />}
         {(state.activeView === 'goal' || state.activeView === 'inbox') && (
-          <GoalView activeGoal={activeGoal} dispatch={dispatch} />
+          <GoalView activeGoal={activeGoal} dispatch={dispatch} onReport={setReportGoal} />
         )}
       </main>
 
@@ -155,7 +244,25 @@ export default function App() {
         isOpen={reflectionOpen}
         onClose={() => setReflectionOpen(false)}
       />
-      <BottomToolbar state={state} dispatch={dispatch} />
+      <BottomToolbar
+        state={state}
+        dispatch={dispatch}
+        onOpenTheme={() => setThemeOpen(true)}
+      />
+      {themeOpen && (
+        <ThemeSettings state={state} dispatch={dispatch} onClose={() => setThemeOpen(false)} />
+      )}
+      {paletteOpen && (
+        <CommandPalette
+          state={state}
+          dispatch={dispatch}
+          onClose={() => setPaletteOpen(false)}
+          onFocusMode={() => setFocusOpen(true)}
+        />
+      )}
+      {focusOpen && (
+        <FocusMode state={state} dispatch={dispatch} onClose={() => setFocusOpen(false)} />
+      )}
     </div>
   );
 }
