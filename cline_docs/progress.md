@@ -15,9 +15,10 @@
 - Sri Lankan public holidays on the calendar: curated 2025-2027 dataset (incl. all Poya days), holiday chips + day-panel rows + legend, fixed-date fallback for other years
 - Light-mode contrast improvements (CountdownCard, ProgressChart, TaskItem)
 - Recurring tasks, task dependencies (`blockedBy`), JSON export/import, URL goal share, confetti, streak
-- PWA setup; deadline notification digest with per-day dedupe; reminders toggle
+- PWA setup with shortcuts (Today / New task / Focus mode) + share-target quick capture; deadline notification digest with per-day dedupe; reminders toggle
 - UI foundation: @fontsource Inter/JetBrains Mono, shared component classes, focus-visible rings, a11y fixes, no emojis anywhere
-- Unit tests for utils (11 passing, incl. computeDailyPlan, computePace, normalizeState) — Vitest
+- **Full premium feature set (20 features)**: weekly planner w/ time blocks + catch-up + routines, Gantt timeline, analytics trends + estimation coach + streak heatmap + weekly digest, ICS export/import, natural-language smart add (~45m/every mon/after:task), accent theme picker, focus mode, command palette (Ctrl+P), read-only share page, printable report (PDF), PWA shortcuts + share-target capture
+- Unit tests for utils (29 passing, incl. computeDailyPlan, computePace, normalizeState, computeCatchUp, computeWeeklyTrends, computeEstimateCoach, computeStreakStats, computeWeeklyDigest, buildICS, parseICS, parseSmartInput, normalizeState new fields) — Vitest
 
 ## Not Started / TODO ⬜
 - Project-specific README
