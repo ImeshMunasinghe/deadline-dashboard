@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { Edit2, Check, X, Share2, Copy } from 'lucide-react';
+import { Edit2, Check, X, Share2, Copy, Printer } from 'lucide-react';
 import type { Goal } from '../types';
 import type { AppAction } from '../types';
 import { useCountdown } from '../hooks';
-import { encodeGoalShare, computePace } from '../utils';
+import { encodeGoalShare, computePace, formatDate } from '../utils';
 import type { GoalPace } from '../utils';
 
 // Pace chip: colored dot + label, no emojis
@@ -42,6 +42,7 @@ export function PaceBadge({ goal, showDetail }: { goal: Goal; showDetail?: boole
 interface CountdownCardProps {
   goal: Goal;
   dispatch: React.Dispatch<AppAction>;
+  onReport?: (goal: Goal) => void;
 }
 
 // Animated circular progress ring using SVG
@@ -102,7 +103,7 @@ function CountUnit({ value, label }: { value: number; label: string }) {
   );
 }
 
-export function CountdownCard({ goal, dispatch }: CountdownCardProps) {
+export function CountdownCard({ goal, dispatch, onReport }: CountdownCardProps) {
   const countdown = useCountdown(goal.targetDate, goal.createdAt);
   const [editing, setEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(goal.title);
@@ -125,11 +126,22 @@ export function CountdownCard({ goal, dispatch }: CountdownCardProps) {
   }
 
   function handleShare() {
-    const url = encodeGoalShare(goal);
-    navigator.clipboard.writeText(url).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    });
+    const shareData = {
+      title: goal.title,
+      text: `Deadline: ${goal.title} - target ${formatDate(goal.targetDate)}`,
+      url: encodeGoalShare(goal),
+    };
+    const nav = navigator as Navigator & { share?: (data: ShareData) => Promise<void> };
+    if (nav.share) {
+      nav.share(shareData).catch(() => {
+        navigator.clipboard.writeText(shareData.url);
+      });
+    } else {
+      navigator.clipboard.writeText(shareData.url).then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      });
+    }
   }
 
   // Determine ring fill colour based on time left
@@ -224,6 +236,15 @@ export function CountdownCard({ goal, dispatch }: CountdownCardProps) {
               >
                 <Share2 size={14} />
               </button>
+              {onReport && (
+                <button
+                  onClick={() => onReport(goal)}
+                  aria-label="Generate report"
+                  className="p-1.5 rounded-lg text-slate-400 dark:text-neutral-500 hover:text-violet-500 hover:bg-slate-100 dark:bg-neutral-800 transition-colors"
+                >
+                  <Printer size={14} />
+                </button>
+              )}
               <button
                 onClick={() => setEditing(true)}
                 aria-label="Edit goal"
