@@ -268,6 +268,15 @@ export function normalizeState(state: AppState): AppState {
     goals: (state.goals ?? []).map((g) => ({ ...g, tasks: (g.tasks ?? []).map(fixTask) })),
     inbox: (state.inbox ?? []).map(fixTask),
     templates: (state.templates ?? []).map((g) => ({ ...g, tasks: (g.tasks ?? []).map(fixTask) })),
+    plans: state.plans ?? {},
+    routines: (state.routines ?? []).map((r) => ({
+      id: r.id,
+      title: r.title ?? '',
+      goalId: r.goalId ?? '',
+      taskTexts: r.taskTexts ?? [],
+      frequency: r.frequency ?? 'daily',
+    })),
+    accent: state.accent ?? '#2563eb',
   };
 }
 
@@ -373,6 +382,12 @@ export function buildMonthGrid(year: number, month: number /* 0-11 */, today: Da
 
 export type { HolidayInfo } from './holidays';
 export { getSriLankanHolidayMap } from './holidays';
+export * from './insights';
+export * from './smartAdd';
+export {
+  buildICS, downloadICS, parseICS,
+  type IcsEvent,
+} from './ics';
 import type { HolidayInfo } from './holidays';
 
 export interface CalendarEvent {

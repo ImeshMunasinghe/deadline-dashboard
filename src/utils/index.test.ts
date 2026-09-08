@@ -283,4 +283,160 @@ describe('normalizeState', () => {
     expect(fixed.goals[0].tasks[0].actualMinutes).toBe(0);
     expect(fixed.inbox[0].actualMinutes).toBe(0);
   });
+
+  it('defaults plans, routines, and accent for older saved data', () => {
+    const fixed = normalizeState({ goals: [] as never[], inbox: [], templates: [] } as unknown as AppState);
+    expect(fixed.plans).toEqual({});
+    expect(fixed.routines).toEqual([]);
+    expect(fixed.accent).toBe('#2563eb');
+  });
+});
+
+// ─── Insights ─────────────────────────────────────────────────────────────
+
+import { computeCatchUp, computeWeeklyTrends, computeEstimateCoach, computeStreakStats, computeWeeklyDigest, buildICS, parseICS } from './index';
+
+function goalWith(tasks: { id: string; text: string; completed?: boolean; dueDate?: string | null; createdAt?: string; completedAt?: string | null; estimatedMinutes?: number | null; actualMinutes?: number }[]) {
+  return {
+    id: 'g',
+    title: 'G',
+    targetDate: '2026-12-31',
+    notes: '',
+    milestones: [],
+    createdAt: '2026-01-01',
+    category: 'Work' as const,
+    color: '',
+    tasks: tasks.map((t) => ({
+      id: t.id,
+      text: t.text,
+      completed: t.completed ?? false,
+      priority: 'medium' as const,
+      dueDate: t.dueDate ?? null,
+      subtasks: [],
+      createdAt: t.createdAt ?? '2026-01-01T00:00:00Z',
+      completedAt: t.completedAt ?? null,
+      estimatedMinutes: t.estimatedMinutes ?? null,
+      actualMinutes: t.actualMinutes ?? 0,
+      recurrence: null,
+      blockedBy: null,
+    })),
+  };
+}
+
+describe('computeCatchUp', () => {
+  it('returns overdue incomplete tasks to reschedule', () => {
+    const state = { goals: [goalWith([
+      { id: 'a', text: 'overdue', dueDate: '2026-09-01' },
+      { id: 'b', text: 'done-late', completed: true, dueDate: '2026-08-01', completedAt: '2026-08-02T00:00:00Z' },
+    ])] } as unknown as AppState;
+    const updates = computeCatchUp(state, new Date(2026, 8, 10)); // 2026-09-10
+    expect(updates).toHaveLength(1);
+    expect(updates[0].taskId).toBe('a');
+    expect(updates[0].to).toBe('2026-09-10');
+  });
+});
+
+describe('computeWeeklyTrends', () => {
+  it('buckets completions into the last 8 weeks', () => {
+    const state = { goals: [goalWith([
+      // completed 26 weeks ago — should fall outside the 8-week window
+      { id: 'old', text: 'old', completed: true, completedAt: '2026-01-01T00:00:00Z' },
+      { id: 'recent', text: 'recent', completed: true, completedAt: '2026-09-04T00:00:00Z' },
+    ])] } as unknown as AppState;
+    const trends = computeWeeklyTrends(state, 8, new Date(2026, 8, 6));
+    expect(trends).toHaveLength(8);
+    const total = trends.reduce((s, w) => s + w.completed, 0);
+    expect(total).toBe(1);
+  });
+});
+
+describe('computeEstimateCoach', () => {
+  it('reports under-estimation when actual exceeds estimate', () => {
+    const state = { goals: [goalWith([
+      { id: 'a', text: 'a', completed: true, completedAt: '2026-01-02T00:00:00Z', estimatedMinutes: 60, actualMinutes: 120 },
+    ])] } as unknown as AppState;
+    const coach = computeEstimateCoach(state);
+    expect(coach.samples).toBe(1);
+    expect(coach.avgRatio).toBeCloseTo(2, 0);
+    expect(coach.underestimate).toBe(1);
+  });
+});
+
+describe('computeStreakStats', () => {
+  it('computes consecutive-day streaks and heatmap size', () => {
+    const state = { goals: [goalWith([
+      { id: 't1', text: 'a', completed: true, completedAt: '2026-09-08T00:00:00Z' },
+      { id: 't2', text: 'b', completed: true, completedAt: '2026-09-07T00:00:00Z' },
+    ])] } as unknown as AppState;
+    const streak = computeStreakStats(state, 84, new Date(2026, 8, 8));
+    expect(streak.heatmap).toHaveLength(84);
+    expect(streak.current).toBeGreaterThanOrEqual(1);
+    expect(streak.best).toBeGreaterThanOrEqual(1);
+  });
+});
+
+describe('computeWeeklyDigest', () => {
+  it('counts completions and focus time for the week', () => {
+    const state = { goals: [goalWith([
+      { id: 't1', text: 'a', completed: true, completedAt: '2026-09-08T00:00:00Z', actualMinutes: 25 },
+    ])], reflections: [] } as unknown as AppState;
+    const digest = computeWeeklyDigest(state, new Date(2026, 8, 8));
+    expect(digest.completed).toBe(1);
+    expect(digest.focusMinutes).toBe(25);
+    expect(digest.days).toHaveLength(7);
+  });
+});
+
+// ─── ICS export / import ─────────────────────────────────────────────────
+
+describe('ICS', () => {
+  it('builds and round-trips all-day events', () => {
+    const state = { goals: [goalWith([
+      { id: 't1', text: 'Review report', dueDate: '2026-09-15' },
+    ])] };
+    const ics = buildICS(state);
+    expect(ics).toContain('BEGIN:VCALENDAR');
+    expect(ics).toContain('SUMMARY:Review report');
+    const parsed = parseICS(ics);
+    // buildICS emits a goal event + task event
+    expect(parsed.length).toBe(2);
+    const task = parsed.find((e) => e.summary === 'Review report');
+    expect(task).not.toBeUndefined();
+    expect(task!.date).toBe('2026-09-15');
+  });
+
+  it('parses a raw folded .ics snippet', () => {
+    const raw = 'BEGIN:VCALENDAR\r\nBEGIN:VEVENT\r\nUID:x\r\nDTSTART;VALUE=DATE:20260915\r\nSUMMARY:Standup\r\nEND:VEVENT\r\nEND:VCALENDAR';
+    const parsed = parseICS(raw);
+    expect(parsed).toHaveLength(1);
+    expect(parsed[0].date).toBe('2026-09-15');
+  });
+});
+
+// ─── Smart add parser ─────────────────────────────────────────────────────
+
+import { parseSmartInput } from './index';
+
+describe('parseSmartInput', () => {
+  it('parses priority, estimate, recurrence, due date, and dependency', () => {
+    const res = parseSmartInput('Write report !high ~1.5h every mon after:Research', {
+      tasks: [{ id: 'x1', text: 'Research', dueDate: '2026-09-10' }],
+      now: new Date(2026, 8, 6), // Sunday 2026-09-06
+    });
+    expect(res.text).toBe('Write report');
+    expect(res.priority).toBe('high');
+    expect(res.estimatedMinutes).toBe(90);
+    expect(res.recurrence).toBe('weekly');
+    expect(res.blockedBy).toBe('x1');
+    // weekly + Monday default: next Monday = 2026-09-07
+    expect(res.dueDate).toBe('2026-09-07');
+  });
+
+  it('strips nothing when no tokens present', () => {
+    const res = parseSmartInput('Just a plain task', { now: new Date(2026, 8, 6) });
+    expect(res.text).toBe('Just a plain task');
+    expect(res.estimatedMinutes).toBeNull();
+    expect(res.recurrence).toBeNull();
+    expect(res.blockedBy).toBeNull();
+  });
 });
