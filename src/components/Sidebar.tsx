@@ -13,13 +13,16 @@ import {
   Calendar,
   CalendarDays,
   Inbox,
+  Palette,
+  CalendarRange,
+  GanttChartSquare,
   BarChart2,
   BookOpen,
   Bell
 } from 'lucide-react';
 import type { Goal, AppState, GoalCategory } from '../types';
 import type { AppAction } from '../types';
-import { generateId, exportStateAsJSON, parseImportedState, formatDate } from '../utils';
+import { generateId, exportStateAsJSON, parseImportedState, formatDate, buildICS, downloadICS, parseICS } from '../utils';
 import { PaceBadge } from './CountdownCard';
 
 interface SidebarProps {
@@ -29,7 +32,11 @@ interface SidebarProps {
 }
 
 // ── Fixed bottom-left toolbar ──────────────────────────────────────────────
-export function BottomToolbar({ state, dispatch }: { state: AppState; dispatch: React.Dispatch<AppAction> }) {
+export function BottomToolbar({ state, dispatch, onOpenTheme }: {
+  state: AppState;
+  dispatch: React.Dispatch<AppAction>;
+  onOpenTheme: () => void;
+}) {
   const [isDark, setIsDark] = useState(() => localStorage.getItem('theme') === 'dark');
 
   useEffect(() => {
@@ -61,6 +68,57 @@ export function BottomToolbar({ state, dispatch }: { state: AppState; dispatch: 
     input.click();
   }
 
+  function handleImportICS() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.ics,text/calendar';
+    input.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const text = ev.target?.result as string;
+        const events = parseICS(text);
+        if (events.length === 0) {
+          alert('No all-day events found in that .ics file.');
+          return;
+        }
+        events.forEach((ev) => {
+          dispatch({
+            type: 'ADD_TO_INBOX',
+            payload: {
+              task: {
+                id: generateId(),
+                text: ev.summary,
+                completed: false,
+                priority: 'medium',
+                dueDate: ev.date,
+                subtasks: [],
+                createdAt: new Date().toISOString(),
+                completedAt: null,
+                estimatedMinutes: null,
+                actualMinutes: 0,
+                recurrence: null,
+                blockedBy: null,
+              },
+            },
+          });
+        });
+      };
+      reader.readAsText(file);
+    };
+    input.click();
+  }
+
+  function handleInstall() {
+    // PWA install prompt (Chromium) — best-effort
+    if ('install' in navigator) {
+      (navigator as { install: () => Promise<unknown> }).install()
+        .then(() => alert('App installed to your device.'))
+        .catch(() => {});
+    }
+  }
+
   return (
     <div className="fixed bottom-4 left-4 z-50 flex flex-row gap-2">
       <button
@@ -83,6 +141,50 @@ export function BottomToolbar({ state, dispatch }: { state: AppState; dispatch: 
         className="icon-btn w-9 h-9"
       >
         <Upload size={15} />
+      </button>
+      <button
+        onClick={onOpenTheme}
+        title="Theme accent"
+        className="icon-btn w-9 h-9"
+      >
+        <Palette size={15} />
+      </button>
+      <button
+        onClick={() => dispatch({ type: 'SET_ACTIVE_VIEW', payload: { view: 'timeline' } })}
+        title="Goal timeline"
+        aria-label="Open goal timeline"
+        className="icon-btn w-9 h-9"
+      >
+        <GanttChartSquare size={15} />
+      </button>
+      <button
+        onClick={() => dispatch({ type: 'SET_ACTIVE_VIEW', payload: { view: 'planner' } })}
+        title="Weekly planner"
+        aria-label="Open weekly planner"
+        className="icon-btn w-9 h-9"
+      >
+        <CalendarRange size={15} />
+      </button>
+      <button
+        onClick={handleImportICS}
+        title="Import .ics (adds events to inbox)"
+        className="icon-btn w-9 h-9"
+      >
+        <Calendar size={15} />
+      </button>
+      <button
+        onClick={() => downloadICS(buildICS(state))}
+        title="Export .ics file"
+        className="icon-btn w-9 h-9"
+      >
+        <CalendarDays size={15} />
+      </button>
+      <button
+        onClick={handleInstall}
+        title="Install as an app"
+        className="icon-btn w-9 h-9"
+      >
+        <Download size={15} />
       </button>
       <button
         onClick={() => {
