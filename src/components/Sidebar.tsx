@@ -13,7 +13,6 @@ import {
   Calendar,
   CalendarDays,
   Inbox,
-  Palette,
   CalendarRange,
   GanttChartSquare,
   BarChart2,
@@ -22,7 +21,7 @@ import {
 } from 'lucide-react';
 import type { Goal, AppState, GoalCategory } from '../types';
 import type { AppAction } from '../types';
-import { generateId, exportStateAsJSON, parseImportedState, formatDate, buildICS, downloadICS, parseICS } from '../utils';
+import { generateId, exportStateAsJSON, parseImportedState, formatDate } from '../utils';
 import { PaceBadge } from './CountdownCard';
 
 interface SidebarProps {
@@ -32,10 +31,9 @@ interface SidebarProps {
 }
 
 // ── Fixed bottom-left toolbar ──────────────────────────────────────────────
-export function BottomToolbar({ state, dispatch, onOpenTheme }: {
+export function BottomToolbar({ state, dispatch }: {
   state: AppState;
   dispatch: React.Dispatch<AppAction>;
-  onOpenTheme: () => void;
 }) {
   const [isDark, setIsDark] = useState(() => localStorage.getItem('theme') === 'dark');
 
@@ -62,48 +60,6 @@ export function BottomToolbar({ state, dispatch, onOpenTheme }: {
         const parsed = parseImportedState(text);
         if (parsed) dispatch({ type: 'LOAD_STATE', payload: parsed });
         else alert('Invalid backup file.');
-      };
-      reader.readAsText(file);
-    };
-    input.click();
-  }
-
-  function handleImportICS() {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.ics,text/calendar';
-    input.onchange = (e) => {
-      const file = (e.target as HTMLInputElement).files?.[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        const text = ev.target?.result as string;
-        const events = parseICS(text);
-        if (events.length === 0) {
-          alert('No all-day events found in that .ics file.');
-          return;
-        }
-        events.forEach((ev) => {
-          dispatch({
-            type: 'ADD_TO_INBOX',
-            payload: {
-              task: {
-                id: generateId(),
-                text: ev.summary,
-                completed: false,
-                priority: 'medium',
-                dueDate: ev.date,
-                subtasks: [],
-                createdAt: new Date().toISOString(),
-                completedAt: null,
-                estimatedMinutes: null,
-                actualMinutes: 0,
-                recurrence: null,
-                blockedBy: null,
-              },
-            },
-          });
-        });
       };
       reader.readAsText(file);
     };
@@ -143,13 +99,6 @@ export function BottomToolbar({ state, dispatch, onOpenTheme }: {
         <Upload size={15} />
       </button>
       <button
-        onClick={onOpenTheme}
-        title="Theme accent"
-        className="icon-btn w-9 h-9"
-      >
-        <Palette size={15} />
-      </button>
-      <button
         onClick={() => dispatch({ type: 'SET_ACTIVE_VIEW', payload: { view: 'timeline' } })}
         title="Goal timeline"
         aria-label="Open goal timeline"
@@ -164,20 +113,6 @@ export function BottomToolbar({ state, dispatch, onOpenTheme }: {
         className="icon-btn w-9 h-9"
       >
         <CalendarRange size={15} />
-      </button>
-      <button
-        onClick={handleImportICS}
-        title="Import .ics (adds events to inbox)"
-        className="icon-btn w-9 h-9"
-      >
-        <Calendar size={15} />
-      </button>
-      <button
-        onClick={() => downloadICS(buildICS(state))}
-        title="Export .ics file"
-        className="icon-btn w-9 h-9"
-      >
-        <CalendarDays size={15} />
       </button>
       <button
         onClick={handleInstall}
@@ -276,8 +211,11 @@ export function Sidebar({ state, dispatch, onOpenReflection }: SidebarProps) {
           {[
             { view: 'calendar' as const, icon: <CalendarDays size={15} />, label: 'Calendar' },
             { view: 'today' as const, icon: <Calendar size={15} />, label: 'Today' },
-            { view: 'inbox' as const, icon: <Inbox size={15} />, label: 'Inbox', badge: state.inbox?.length },
+            { view: 'planner' as const, icon: <CalendarRange size={15} />, label: 'Planner' },
+            { view: 'timeline' as const, icon: <GanttChartSquare size={15} />, label: 'Timeline' },
             { view: 'analytics' as const, icon: <BarChart2 size={15} />, label: 'Analytics' },
+            { view: 'importexport' as const, icon: <Download size={15} />, label: 'Import/Export' },
+            { view: 'inbox' as const, icon: <Inbox size={15} />, label: 'Inbox', badge: state.inbox?.length },
           ].map(({ view, icon, label, badge }) => (
             <button
               key={view}

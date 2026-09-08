@@ -11,7 +11,7 @@ import { AnalyticsView } from './components/AnalyticsView';
 import { CalendarView } from './components/CalendarView';
 import { PlannerView } from './components/PlannerView';
 import { TimelineView } from './components/TimelineView';
-import { ThemeSettings } from './components/ThemeSettings';
+import { ImportExportTab } from './components/ImportExportTab';
 import { CommandPalette } from './components/CommandPalette';
 import { FocusMode } from './components/FocusMode';
 import { QuickCapture } from './components/QuickCapture';
@@ -21,12 +21,6 @@ import { ReportView } from './components/ReportView';
 import { useAppState } from './hooks';
 import { decodeGoalShare, generateId, getTaskStats, computeDeadlineNotifications, filterUnnotified, parseSmartInput } from './utils';
 import type { Goal, AppAction } from './types';
-
-function hexToRgb(hex: string): string | null {
-  const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-  if (!m) return null;
-  return `${parseInt(m[1], 16)},${parseInt(m[2], 16)},${parseInt(m[3], 16)}`;
-}
 
 function GoalView({ activeGoal, dispatch, onReport }: { activeGoal: Goal | null, dispatch: React.Dispatch<AppAction>, onReport?: (goal: Goal) => void }) {
   if (!activeGoal) return <EmptyState />;
@@ -68,7 +62,6 @@ export default function App() {
 
   // ── Reflection open state (lifted here to avoid DOM custom events) ──────
   const [reflectionOpen, setReflectionOpen] = useState(false);
-  const [themeOpen, setThemeOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [focusOpen, setFocusOpen] = useState(false);
 
@@ -165,13 +158,6 @@ export default function App() {
     });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Apply accent colour as a CSS variable for theme-aware components
-  useEffect(() => {
-    const root = document.documentElement;
-    root.style.setProperty('--accent', state.accent);
-    root.style.setProperty('--accent-rgb', hexToRgb(state.accent) ?? '37,99,235');
-  }, [state.accent]);
-
   const activeGoal = state.goals.find((g) => g.id === state.activeGoalId) ?? null;
 
   // Track task progress to trigger confetti on 100% completion
@@ -230,6 +216,7 @@ export default function App() {
         {state.activeView === 'analytics' && <AnalyticsView state={state} dispatch={dispatch} />}
         {state.activeView === 'planner' && <PlannerView state={state} dispatch={dispatch} />}
         {state.activeView === 'timeline' && <TimelineView state={state} dispatch={dispatch} />}
+        {state.activeView === 'importexport' && <ImportExportTab state={state} dispatch={dispatch} />}
         {(state.activeView === 'goal' || state.activeView === 'inbox') && (
           <GoalView activeGoal={activeGoal} dispatch={dispatch} onReport={setReportGoal} />
         )}
@@ -247,11 +234,7 @@ export default function App() {
       <BottomToolbar
         state={state}
         dispatch={dispatch}
-        onOpenTheme={() => setThemeOpen(true)}
       />
-      {themeOpen && (
-        <ThemeSettings state={state} dispatch={dispatch} onClose={() => setThemeOpen(false)} />
-      )}
       {paletteOpen && (
         <CommandPalette
           state={state}
