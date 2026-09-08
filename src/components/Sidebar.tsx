@@ -31,6 +31,50 @@ interface SidebarProps {
 }
 
 // ── Fixed bottom-left toolbar ──────────────────────────────────────────────
+function reminderTooltip(state: AppState): string {
+  if (!('Notification' in window)) {
+    return 'Notifications not supported in this browser';
+  }
+  const perm = Notification.permission;
+  const lead = state.reminderLeadHours;
+  const leadLabel = lead === 1 ? '1 hour' : `${lead} hours`;
+  if (state.remindersEnabled) {
+    if (perm === 'granted') {
+      return `Reminders on (alerts ${leadLabel} before deadlines) — click to disable`;
+    }
+    if (perm === 'denied') {
+      return `Reminders on but browser notifications blocked — using in-app toasts (${leadLabel} before)`;
+    }
+    return `Reminders on — click to disable (grant permission for native alerts)`;
+  }
+  return 'Reminders off — click to enable';
+}
+
+function LeadHoursControl({ state, dispatch }: { state: AppState; dispatch: React.Dispatch<AppAction> }) {
+  return (
+    <label
+      className="icon-btn w-9 h-9 flex-col gap-0 cursor-pointer"
+      title={`Remind me this many hours before a deadline (currently ${state.reminderLeadHours})`}
+      aria-label="Set reminder lead time in hours"
+    >
+      <input
+        type="number"
+        min={1}
+        max={168}
+        value={state.reminderLeadHours}
+        onChange={(e) => {
+          const v = Number(e.target.value);
+          if (Number.isFinite(v) && v > 0) {
+            dispatch({ type: 'SET_REMINDER_LEAD', payload: { hours: v } });
+          }
+        }}
+        className="w-7 text-center text-[10px] bg-transparent outline-none text-slate-600 dark:text-neutral-300 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+      />
+      <span className="text-[8px] leading-none text-slate-400 dark:text-neutral-500 -mt-0.5">hrs</span>
+    </label>
+  );
+}
+
 export function BottomToolbar({ state, dispatch }: {
   state: AppState;
   dispatch: React.Dispatch<AppAction>;
@@ -128,18 +172,13 @@ export function BottomToolbar({ state, dispatch }: {
           }
           dispatch({ type: 'TOGGLE_REMINDERS' });
         }}
-        title={
-          !('Notification' in window)
-            ? 'Notifications not supported in this browser'
-            : state.remindersEnabled
-            ? 'Reminders on — click to disable'
-            : 'Reminders off — click to enable'
-        }
+        title={reminderTooltip(state)}
         aria-label="Toggle deadline reminders"
         className={`icon-btn w-9 h-9 ${state.remindersEnabled ? 'text-blue-600 dark:text-blue-400' : ''}`}
       >
         <Bell size={15} />
       </button>
+      <LeadHoursControl state={state} dispatch={dispatch} />
     </div>
   );
 }

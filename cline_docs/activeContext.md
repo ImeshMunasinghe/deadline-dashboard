@@ -9,7 +9,14 @@
     - **Feature 14 — Shared goals / read-only share page** (`src/components/ShareView.tsx`): public `ShareView` renders goal progress (ring, pace, milestones, task list) for anyone with the `?share=` link. CountdownCard already had the share button; App.tsx routes `?share=` param to this view and cleans the URL.
     - **Feature 15 — Export as report** (`src/components/ReportView.tsx`): print-friendly per-goal report with progress ring, pace, stats, milestones, task table. Triggered via a new Printer icon on CountdownCard → App.tsx `reportGoal` state → full-screen ReportView with Print/Save PDF button. Print styles added to `src/index.css` (`.print:hidden` etc.).
     - **Feature 19 — PWA shortcuts + share-target quick capture**: shortcuts (Today / New task / Focus mode) and `share_target` were already in `vite.config.ts`; the app-side handler in App.tsx parses `?share-target=&title=&text=&url=`, runs the shared text through `parseSmartInput`, and creates an inbox task.
-- **Sri Lankan public holidays on the calendar** (2026-09-07): new pure module `src/utils/holidays.ts` with curated per-year datasets for 2025–2027; uncovered years fall back to fixed-date holidays only. CalendarView shows rose-colored holiday chips and day-panel rows. 29 tests pass.
+- **Periodic deadline reminders + toast fallback + configurable lead-hours** (2026-09-08):
+  - New `useDeadlineReminders` hook (`src/hooks/useDeadlineReminders.ts`) runs a 60s `setInterval` that re-scans for pending deadline notifications — replacing the old one-shot on-load check so reminders fire even if the deadline becomes due after the app has been open a while.
+  - In-app toast fallback (`src/components/ToastList.tsx` + `showToast`/`subscribeToToasts` in `src/utils/index.ts`) surfaces reminders when native notifications are blocked or unsupported, reusing the existing `.toast-slide-up` animation.
+  - Native notification delivery via `deliverNotification` (uses `tag` to replace rather than stack), `requestNotificationPermission`, `clearTodayNotified` (re-fires today's reminders after a mid-session permission grant), and `pruneOldNotified` (end-of-day rollover of dedupe keys).
+  - `computeDeadlineNotifications` now accepts a configurable `leadHours` parameter (default 24) instead of a hardcoded 24h window; `DeadlineNotification` extended with a stable `tag` field.
+  - New `reminderLeadHours` field on `AppState` (default 24) + `SET_REMINDER_LEAD` reducer action (clamps 1–168, rounds to integer); `normalizeState` defaults both new fields for backward compatibility.
+  - Sidebar bell toggle tooltip now shows permission state (granted/denied/default) and the configured lead window; new inline `LeadHoursControl` number input next to the bell.
+  - New `vitest.config.ts` (jsdom environment) + `jsdom` dev dependency; 8 new tests covering notification computation, lead-hours window, dedupe, pruning, reducer clamping, and normalizeState defaults (37 total passing).
 - **Google Calendar-style UX + Today task picker** (`2005e11`, 2026-09-07):
   - CalendarView: fixed stale-today and UTC-vs-local date bugs (events now built from local date components); mosaic grid (gap-px layout); inline completion toggles on task chips and in the day panel; "+Add" inline task creation form (text, goal, priority, due date pre-filled); legend row; day panel close button.
   - TodayView: "+Add task" opens a TaskPickerModal (all incomplete tasks grouped by goal, with search); planned tasks shown disabled; "Add to plan" on unplanned due-today rows; auto-plan now considers all tasks, not just due-today.
@@ -32,7 +39,7 @@
 - `README.md` is still the default Vite template — not project documentation.
 
 ## Known Limitations
-- Notifications fire only while the app is open (no push server); reminder toggle is best-effort.
+- Notifications fire only while the app is open (no push server); reminder toggle is best-effort. Reminders now re-scan every 60s and fall back to in-app toasts when native notifications are blocked.
 - Daily plan is per-date only (single today queue).
 
 ## Possible Next Steps

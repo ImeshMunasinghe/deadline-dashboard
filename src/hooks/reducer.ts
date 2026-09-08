@@ -12,6 +12,7 @@ export const initialState: AppState = {
   reflections: [],
   dailyPlan: null,
   remindersEnabled: true,
+  reminderLeadHours: 24,
   plans: {},
   routines: [],
 };
@@ -392,6 +393,11 @@ export function appReducer(state: AppState, action: AppAction): AppState {
 
     case 'TOGGLE_REMINDERS': {
       return { ...state, remindersEnabled: !state.remindersEnabled };
+    }
+
+    case 'SET_REMINDER_LEAD': {
+      const hours = Math.max(1, Math.min(168, Math.round(action.payload.hours)));
+      return { ...state, reminderLeadHours: hours };
     }
 
     // ── State Hydration ────────────────────────────────────────────────

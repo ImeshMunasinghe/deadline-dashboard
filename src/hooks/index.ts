@@ -2,6 +2,9 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import type { AppState, AppAction, CountdownState } from '../types';
 import { appReducer, initialState } from './reducer';
 import { computeCountdown, normalizeState } from '../utils';
+import { useDeadlineReminders } from './useDeadlineReminders';
+
+export { useDeadlineReminders };
 
 // ─── useGlobalTick ────────────────────────────────────────────────────────
 // Module-level single interval that drives ALL useCountdown consumers.

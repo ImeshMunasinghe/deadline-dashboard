@@ -276,6 +276,8 @@ export function normalizeState(state: AppState): AppState {
       taskTexts: r.taskTexts ?? [],
       frequency: r.frequency ?? 'daily',
     })),
+    remindersEnabled: state.remindersEnabled ?? true,
+    reminderLeadHours: state.reminderLeadHours ?? 24,
   };
 }
 
@@ -285,21 +287,28 @@ export function normalizeState(state: AppState): AppState {
 
 export interface DeadlineNotification {
   id: string; // dedupe key: date + task/goal id
+  tag: string; // stable per-notification tag so repeated fires replace rather than stack
   title: string;
   body: string;
 }
 
-export function computeDeadlineNotifications(state: AppState, now: Date = new Date()): DeadlineNotification[] {
+export function computeDeadlineNotifications(
+  state: AppState,
+  now: Date = new Date(),
+  leadHours: number = 24
+): DeadlineNotification[] {
   const notifications: DeadlineNotification[] = [];
   const todayStr = now.toISOString().split('T')[0];
-  const in24h = now.getTime() + 24 * 60 * 60 * 1000;
+  const leadMs = leadHours * 60 * 60 * 1000;
+  const leadCutoff = now.getTime() + leadMs;
 
   for (const goal of state.goals) {
     const deadline = new Date(goal.targetDate).getTime();
-    if (deadline > now.getTime() && deadline <= in24h) {
+    if (deadline > now.getTime() && deadline <= leadCutoff) {
       const hours = Math.max(1, Math.round((deadline - now.getTime()) / (1000 * 60 * 60)));
       notifications.push({
         id: `${todayStr}-goal-${goal.id}`,
+        tag: `goal-${goal.id}`,
         title: 'Deadline approaching',
         body: `"${goal.title}" is due in ${hours} hour${hours === 1 ? '' : 's'}.`,
       });
@@ -310,12 +319,14 @@ export function computeDeadlineNotifications(state: AppState, now: Date = new Da
       if (task.dueDate && task.dueDate.split('T')[0] === todayStr) {
         notifications.push({
           id: `${todayStr}-task-${task.id}`,
+          tag: `task-${task.id}`,
           title: 'Task due today',
           body: `"${task.text}" (${goal.title})`,
         });
       } else if (task.dueDate && new Date(task.dueDate).getTime() < now.getTime()) {
         notifications.push({
           id: `${todayStr}-task-${task.id}`,
+          tag: `task-${task.id}`,
           title: 'Overdue task',
           body: `"${task.text}" (${goal.title})`,
         });
@@ -341,6 +352,123 @@ export function filterUnnotified(notifications: DeadlineNotification[]): Deadlin
   } catch {
     return notifications;
   }
+}
+
+// ─── Notification Delivery ─────────────────────────────────────────────────
+// Thin wrappers around the Web Notifications API plus an in-app toast fallback
+// so reminders still surface in browsers that block native notifications.
+
+export function notificationsSupported(): boolean {
+  return typeof window !== 'undefined' && 'Notification' in window;
+}
+
+export async function requestNotificationPermission(): Promise<NotificationPermission> {
+  if (!notificationsSupported()) return 'denied';
+  if (Notification.permission !== 'default') return Notification.permission;
+  try {
+    return await Notification.requestPermission();
+  } catch {
+    return Notification.permission;
+  }
+}
+
+// Fires a native notification if permitted. Returns true if a native notification
+// was shown (caller can use this to decide whether to show an in-app toast).
+export function deliverNotification(n: DeadlineNotification): boolean {
+  if (!notificationsSupported() || Notification.permission !== 'granted') return false;
+  try {
+    new Notification(n.title, { body: n.body, tag: n.tag, icon: '/favicon.svg' });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+// Clears today's dedupe keys so reminders can re-fire (e.g. after the user
+// grants permission mid-session).
+export function clearTodayNotified(): void {
+  try {
+    const prefix = todayISO();
+    const sent: string[] = JSON.parse(localStorage.getItem(NOTIFIED_KEY) ?? '[]');
+    const kept = sent.filter((id) => !id.startsWith(prefix));
+    localStorage.setItem(NOTIFIED_KEY, JSON.stringify(kept));
+  } catch {
+    /* ignore */
+  }
+}
+
+// End-of-day rollover: drop dedupe keys from previous days so the list stays small.
+export function pruneOldNotified(): void {
+  try {
+    const prefix = todayISO();
+    const sent: string[] = JSON.parse(localStorage.getItem(NOTIFIED_KEY) ?? '[]');
+    const kept = sent.filter((id) => id.startsWith(prefix));
+    if (kept.length !== sent.length) {
+      localStorage.setItem(NOTIFIED_KEY, JSON.stringify(kept));
+    }
+  } catch {
+    /* ignore */
+  }
+}
+
+// Computes, dedupes, and delivers pending deadline notifications.
+// Returns the list of notifications that were surfaced (native or toast).
+// `onToast` is called for each notification that could not be delivered natively.
+export function scheduleDeadlineNotifications(
+  state: AppState,
+  now: Date = new Date(),
+  onToast?: (n: DeadlineNotification) => void
+): DeadlineNotification[] {
+  pruneOldNotified();
+  const pending = filterUnnotified(
+    computeDeadlineNotifications(state, now, state.reminderLeadHours)
+  );
+  for (const n of pending) {
+    const delivered = deliverNotification(n);
+    if (!delivered && onToast) onToast(n);
+  }
+  return pending;
+}
+
+// ─── In-App Toast Fallback ─────────────────────────────────────────────────
+// A tiny pub/sub toast queue used when native notifications are unavailable.
+// Components subscribe via useToasts(); any code calls showToast().
+
+export interface Toast {
+  id: string;
+  message: string;
+  variant: 'info' | 'warning' | 'success';
+}
+
+type Listener = (toasts: Toast[]) => void;
+const listeners = new Set<Listener>();
+let queue: Toast[] = [];
+let seq = 0;
+
+function emit(): void {
+  listeners.forEach((l) => l(queue));
+}
+
+export function showToast(message: string, variant: Toast['variant'] = 'info'): void {
+  const id = `toast-${Date.now()}-${seq++}`;
+  queue = [...queue, { id, message, variant }];
+  emit();
+  // Auto-dismiss after 6s
+  setTimeout(() => {
+    queue = queue.filter((t) => t.id !== id);
+    emit();
+  }, 6000);
+}
+
+export function dismissToast(id: string): void {
+  queue = queue.filter((t) => t.id !== id);
+  emit();
+}
+
+export function subscribeToToasts(listener: Listener): () => void {
+  listeners.add(listener);
+  listener(queue);
+  return () => listeners.delete(listener);
 }
 
 // ─── Calendar Grid ────────────────────────────────────────────────────────

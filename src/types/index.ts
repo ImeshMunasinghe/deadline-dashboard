@@ -1,4 +1,4 @@
-// ─── Core Data Types ───────────────────────────────────────────────────────
+﻿// â”€â”€â”€ Core Data Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export type Priority = 'low' | 'medium' | 'high';
 
@@ -43,7 +43,7 @@ export interface Goal {
   color: string; // Hex code or Tailwind class
 }
 
-// ─── Countdown State ───────────────────────────────────────────────────────
+// â”€â”€â”€ Countdown State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export interface CountdownState {
   days: number;
@@ -52,10 +52,10 @@ export interface CountdownState {
   seconds: number;
   isExpired: boolean;
   totalSeconds: number;
-  progressPercent: number; // 0–100 from creation → deadline
+  progressPercent: number; // 0â€“100 from creation â†’ deadline
 }
 
-// ─── App State ────────────────────────────────────────────────────────────
+// â”€â”€â”€ App State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export interface Reflection {
   date: string; // ISO date string YYYY-MM-DD
@@ -71,7 +71,9 @@ export interface AppState {
   reflections: Reflection[];
   dailyPlan: DailyPlan | null;
   remindersEnabled: boolean;
-  // Multi-day plans (YYYY-MM-DD → plan). Today's plan is mirrored in dailyPlan.
+  // How many hours ahead of a deadline a reminder fires (default 24).
+  reminderLeadHours: number;
+  // Multi-day plans (YYYY-MM-DD â†’ plan). Today's plan is mirrored in dailyPlan.
   plans: Record<string, DailyPlan>;
   // Recurring routine checklists that spawn tasks on demand
   routines: Routine[];
@@ -96,7 +98,7 @@ export interface Routine {
   frequency: 'daily' | 'weekly' | 'weekdays';
 }
 
-// ─── Reducer Actions ──────────────────────────────────────────────────────
+// â”€â”€â”€ Reducer Actions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export type AppAction =
   | { type: 'ADD_GOAL'; payload: Goal }
@@ -141,4 +143,5 @@ export type AppAction =
   // Focus time tracking
   | { type: 'LOG_FOCUS_TIME'; payload: { taskId: string; minutes: number } }
   // Reminders
-  | { type: 'TOGGLE_REMINDERS' };
+  | { type: 'TOGGLE_REMINDERS' }
+  | { type: 'SET_REMINDER_LEAD'; payload: { hours: number } };

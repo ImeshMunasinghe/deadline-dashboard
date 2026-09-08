@@ -18,8 +18,9 @@ import { QuickCapture } from './components/QuickCapture';
 import { DailyReflection } from './components/DailyReflection';
 import { ShareView } from './components/ShareView';
 import { ReportView } from './components/ReportView';
-import { useAppState } from './hooks';
-import { decodeGoalShare, generateId, getTaskStats, computeDeadlineNotifications, filterUnnotified, parseSmartInput } from './utils';
+import { ToastList } from './components/ToastList';
+import { useAppState, useDeadlineReminders } from './hooks';
+import { decodeGoalShare, generateId, getTaskStats, parseSmartInput } from './utils';
 import type { Goal, AppAction } from './types';
 
 function GoalView({ activeGoal, dispatch, onReport }: { activeGoal: Goal | null, dispatch: React.Dispatch<AppAction>, onReport?: (goal: Goal) => void }) {
@@ -52,6 +53,9 @@ function GoalView({ activeGoal, dispatch, onReport }: { activeGoal: Goal | null,
 
 export default function App() {
   const { state, dispatch } = useAppState();
+
+  // Periodic deadline reminders (native notifications + in-app toast fallback).
+  useDeadlineReminders(state);
 
   // Read-only share view: when a ?share= param is present, we show the public
   // ShareView instead of importing the goal into the app.
@@ -148,16 +152,6 @@ export default function App() {
     window.history.replaceState({}, '', clean.toString());
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Fire deadline notifications once per day on load (if permitted and enabled)
-  useEffect(() => {
-    if (!state.remindersEnabled) return;
-    if (!('Notification' in window) || Notification.permission !== 'granted') return;
-    const pending = filterUnnotified(computeDeadlineNotifications(state));
-    pending.forEach((n) => {
-      new Notification(n.title, { body: n.body });
-    });
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
   const activeGoal = state.goals.find((g) => g.id === state.activeGoalId) ?? null;
 
   // Track task progress to trigger confetti on 100% completion
@@ -225,6 +219,7 @@ export default function App() {
       {/* ── Floating Pomodoro Timer — always visible in the bottom-right corner */}
       <PomodoroTimer state={state} dispatch={dispatch} />
       <QuickCapture dispatch={dispatch} />
+      <ToastList />
       <DailyReflection
         state={state}
         dispatch={dispatch}

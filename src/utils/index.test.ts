@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll } from 'vitest';
 import { computeCountdown } from './index';
 
 describe('computeCountdown', () => {
@@ -437,5 +437,213 @@ describe('parseSmartInput', () => {
     expect(res.estimatedMinutes).toBeNull();
     expect(res.recurrence).toBeNull();
     expect(res.blockedBy).toBeNull();
+  });
+});
+
+// ─── Deadline notifications ───────────────────────────────────────────────
+
+import {
+  computeDeadlineNotifications,
+  filterUnnotified,
+  pruneOldNotified,
+} from './index';
+
+// In-memory localStorage mock (jsdom's localStorage is not fully functional here).
+function installLocalStorageMock(): void {
+  const store = new Map<string, string>();
+  const mock = {
+    getItem: (k: string) => store.get(k) ?? null,
+    setItem: (k: string, v: string) => void store.set(k, String(v)),
+    removeItem: (k: string) => void store.delete(k),
+    clear: () => store.clear(),
+  };
+  vi.stubGlobal('localStorage', mock);
+}
+
+function makeState(overrides: Partial<AppState> = {}): AppState {
+  return {
+    goals: [],
+    activeGoalId: null,
+    activeView: 'calendar',
+    inbox: [],
+    templates: [],
+    reflections: [],
+    dailyPlan: null,
+    remindersEnabled: true,
+    reminderLeadHours: 24,
+    plans: {},
+    routines: [],
+    ...overrides,
+  };
+}
+
+describe('computeDeadlineNotifications', () => {
+  beforeAll(() => installLocalStorageMock());
+  beforeEach(() => {
+    vi.useFakeTimers();
+    localStorage.clear();
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+    localStorage.clear();
+  });
+
+  it('flags a goal due within the lead window with a stable tag', () => {
+    const now = new Date('2026-09-08T10:00:00.000Z');
+    vi.setSystemTime(now);
+    const state = makeState({
+      goals: [
+        {
+          id: 'g1',
+          title: 'Ship v2',
+          targetDate: '2026-09-08T20:00:00.000Z',
+          tasks: [],
+          notes: '',
+          milestones: [],
+          createdAt: '2026-09-01T00:00:00.000Z',
+          category: 'Work',
+          color: '#3b82f6',
+        },
+      ],
+    });
+    const result = computeDeadlineNotifications(state, now);
+    expect(result).toHaveLength(1);
+    expect(result[0].title).toBe('Deadline approaching');
+    expect(result[0].tag).toBe('goal-g1');
+    expect(result[0].body).toContain('10 hours');
+  });
+
+  it('respects a custom lead-hours window', () => {
+    const now = new Date('2026-09-08T10:00:00.000Z');
+    vi.setSystemTime(now);
+    const state = makeState({
+      goals: [
+        {
+          id: 'g1',
+          title: 'Ship v2',
+          targetDate: '2026-09-08T20:00:00.000Z',
+          tasks: [],
+          notes: '',
+          milestones: [],
+          createdAt: '2026-09-01T00:00:00.000Z',
+          category: 'Work',
+          color: '#3b82f6',
+        },
+      ],
+    });
+    expect(computeDeadlineNotifications(state, now, 5)).toHaveLength(0);
+    expect(computeDeadlineNotifications(state, now, 12)).toHaveLength(1);
+  });
+
+  it('flags tasks due today and overdue, skips completed', () => {
+    const now = new Date('2026-09-08T10:00:00.000Z');
+    vi.setSystemTime(now);
+    const state = makeState({
+      goals: [
+        {
+          id: 'g1',
+          title: 'Ship v2',
+          targetDate: '2026-09-20T00:00:00.000Z',
+          tasks: [
+            {
+              id: 't1', text: 'Write tests', completed: false, priority: 'high',
+              dueDate: '2026-09-08T18:00:00.000Z', subtasks: [],
+              createdAt: '2026-09-01T00:00:00.000Z', completedAt: null,
+              estimatedMinutes: null, actualMinutes: 0, recurrence: null, blockedBy: null,
+            },
+            {
+              id: 't2', text: 'Old task', completed: false, priority: 'medium',
+              dueDate: '2026-09-05T00:00:00.000Z', subtasks: [],
+              createdAt: '2026-09-01T00:00:00.000Z', completedAt: null,
+              estimatedMinutes: null, actualMinutes: 0, recurrence: null, blockedBy: null,
+            },
+            {
+              id: 't3', text: 'Done task', completed: true, priority: 'high',
+              dueDate: '2026-09-07T00:00:00.000Z', subtasks: [],
+              createdAt: '2026-09-01T00:00:00.000Z', completedAt: '2026-09-06T00:00:00.000Z',
+              estimatedMinutes: null, actualMinutes: 0, recurrence: null, blockedBy: null,
+            },
+          ],
+          notes: '', milestones: [],
+          createdAt: '2026-09-01T00:00:00.000Z', category: 'Work', color: '#3b82f6',
+        },
+      ],
+    });
+    const result = computeDeadlineNotifications(state, now);
+    const titles = result.map((n) => n.title);
+    expect(titles).toContain('Task due today');
+    expect(titles).toContain('Overdue task');
+    expect(result.find((n) => n.body.includes('Done task'))).toBeUndefined();
+    expect(result).toHaveLength(2);
+  });
+});
+
+describe('filterUnnotified', () => {
+  beforeEach(() => localStorage.clear());
+  afterEach(() => localStorage.clear());
+
+  it('returns only notifications not already sent today', () => {
+    const now = new Date('2026-09-08T10:00:00.000Z');
+    vi.setSystemTime(now);
+    const state = makeState({
+      goals: [{
+        id: 'g1', title: 'Ship v2', targetDate: '2026-09-08T20:00:00.000Z',
+        tasks: [], notes: '', milestones: [],
+        createdAt: '2026-09-01T00:00:00.000Z', category: 'Work', color: '#3b82f6',
+      }],
+    });
+    const all = computeDeadlineNotifications(state, now);
+    expect(filterUnnotified(all)).toHaveLength(1);
+    expect(filterUnnotified(all)).toHaveLength(0);
+  });
+});
+
+describe('pruneOldNotified', () => {
+  beforeEach(() => localStorage.clear());
+  afterEach(() => localStorage.clear());
+
+  it('removes dedupe keys from previous days', () => {
+    const now = new Date('2026-09-08T10:00:00.000Z');
+    vi.setSystemTime(now);
+    localStorage.setItem(
+      'deadline-dashboard-notified',
+      JSON.stringify(['2026-09-07-task-old', '2026-09-08-task-new'])
+    );
+    pruneOldNotified();
+    const remaining: string[] = JSON.parse(
+      localStorage.getItem('deadline-dashboard-notified') ?? '[]'
+    );
+    expect(remaining).toEqual(['2026-09-08-task-new']);
+  });
+});
+
+// ─── Reminder lead-hours reducer ─────────────────────────────────────────
+
+import { appReducer } from '../hooks/reducer';
+import type { AppAction } from '../types';
+
+describe('SET_REMINDER_LEAD reducer', () => {
+  const base = makeState();
+
+  it('sets the lead hours', () => {
+    const action: AppAction = { type: 'SET_REMINDER_LEAD', payload: { hours: 6 } };
+    expect(appReducer(base, action).reminderLeadHours).toBe(6);
+  });
+
+  it('clamps values to the 1–168 range and rounds', () => {
+    expect(appReducer(base, { type: 'SET_REMINDER_LEAD', payload: { hours: 0 } }).reminderLeadHours).toBe(1);
+    expect(appReducer(base, { type: 'SET_REMINDER_LEAD', payload: { hours: 999 } }).reminderLeadHours).toBe(168);
+    expect(appReducer(base, { type: 'SET_REMINDER_LEAD', payload: { hours: 2.6 } }).reminderLeadHours).toBe(3);
+  });
+});
+
+// ─── normalizeState reminder defaults ────────────────────────────────────
+
+describe('normalizeState reminder fields', () => {
+  it('defaults reminderLeadHours and remindersEnabled for older saved data', () => {
+    const legacy = { goals: [] } as unknown as AppState;
+    const normalized = normalizeState(legacy);
+    expect(normalized.remindersEnabled).toBe(true);
+    expect(normalized.reminderLeadHours).toBe(24);
   });
 });
