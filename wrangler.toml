@@ -1,23 +1,7 @@
 # Wrangler config for Cloudflare Pages (static site).
 # Build locally with `npm run build`, then deploy with:
 #   npx wrangler pages deploy dist/ --project-name=deadline-dashboard
-# No deploy command needed — Pages auto-publishes the `dist/` output directory.
 name = "deadline-dashboard"
 pages_build_output_dir = "dist"
 compatibility_date = "2025-01-01"
-
-# ── Observability ──────────────────────────────────────────────────────────
-# Captures request logs and traces for any Pages Functions (none in this
-# project currently, but enabled so future Functions are observed).
-[observability.logs]
-enabled = true
-head_sampling_rate = 1.0
-
-[observability.traces]
-enabled = false
-head_sampling_rate = 1.0
-
-# ── Static assets configuration ───────────────────────────────────────────
-# SPA routing is handled by dist/_redirects (CLEAN_URL fallback).
-# No [[routes]] needed here — that directive is for Workers functions only.
 
