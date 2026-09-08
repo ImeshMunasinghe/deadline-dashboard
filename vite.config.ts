@@ -16,6 +16,39 @@ export default defineConfig({
         theme_color: '#0a0a0a',
         background_color: '#0a0a0a',
         display: 'standalone',
+        start_url: '/',
+        shortcuts: [
+          {
+            name: 'Today',
+            short_name: 'Today',
+            description: "View today's plan",
+            url: '/?view=today',
+            icons: [{ src: 'favicon.svg', sizes: 'any', type: 'image/svg+xml' }],
+          },
+          {
+            name: 'New task',
+            short_name: 'New task',
+            description: 'Quick capture a new task',
+            url: '/?view=inbox&capture=1',
+            icons: [{ src: 'favicon.svg', sizes: 'any', type: 'image/svg+xml' }],
+          },
+          {
+            name: 'Focus mode',
+            short_name: 'Focus',
+            description: 'Start a focus session',
+            url: '/?view=today&focus=1',
+            icons: [{ src: 'favicon.svg', sizes: 'any', type: 'image/svg+xml' }],
+          },
+        ],
+        share_target: {
+          action: '/?share-target',
+          method: 'GET',
+          params: {
+            title: 'title',
+            text: 'text',
+            url: 'url',
+          },
+        },
         icons: [
           {
             src: 'favicon.svg',
