@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import type { AppAction } from '../types';
-import { generateId } from '../utils';
+import { generateId, parseSmartInput } from '../utils';
 
 interface QuickCaptureProps {
   dispatch: React.Dispatch<AppAction>;
@@ -35,19 +35,21 @@ export function QuickCapture({ dispatch }: QuickCaptureProps) {
 
   function handleAdd() {
     if (!text.trim()) return;
+    const parsed = parseSmartInput(text);
+    if (!parsed.text) return;
     const task = {
       id: generateId(),
-      text: text.trim(), // Note: full smart parsing can be reused here
+      text: parsed.text,
       completed: false,
-      priority: 'medium' as const,
-      dueDate: null,
+      priority: parsed.priority,
+      dueDate: parsed.dueDate,
       subtasks: [],
       createdAt: new Date().toISOString(),
       completedAt: null,
-      estimatedMinutes: null,
+      estimatedMinutes: parsed.estimatedMinutes,
       actualMinutes: 0,
-      recurrence: null,
-      blockedBy: null,
+      recurrence: parsed.recurrence,
+      blockedBy: parsed.blockedBy,
     };
     dispatch({ type: 'ADD_TO_INBOX', payload: { task } });
     setText('');

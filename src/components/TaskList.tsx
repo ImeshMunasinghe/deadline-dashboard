@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Plus, ArrowUpDown } from 'lucide-react';
 import type { Goal, Task, Priority } from '../types';
 import type { AppAction } from '../types';
-import { generateId, priorityWeight, isOverdue } from '../utils';
+import { generateId, priorityWeight, isOverdue, parseSmartInput } from '../utils';
 import { TaskItem } from './TaskItem';
 
 interface TaskListProps {
@@ -70,55 +70,14 @@ export function TaskList({ goal, dispatch }: TaskListProps) {
     return () => document.removeEventListener('mousedown', onClick);
   }, []);
 
-  // ── Smart Add: parse !high/!medium/!low, today/tomorrow/YYYY-MM-DD from input ──
-  function parseSmartAdd(raw: string): { text: string; priority: Priority; dueDate: string | null } {
-    let input = raw;
-    let parsedPriority: Priority = priority;
-    let parsedDue: string | null = dueDate || null;
-
-    // Priority tokens: !high !h !medium !m !low !l
-    const priMatch = input.match(/\s*!(high|h|medium|med|m|low|l)\b/i);
-    if (priMatch) {
-      const p = priMatch[1].toLowerCase();
-      parsedPriority = p.startsWith('h') ? 'high' : p.startsWith('l') ? 'low' : 'medium';
-      input = input.replace(priMatch[0], '');
-    }
-
-    // Date tokens: today, tomorrow, mon-sun weekday names, or YYYY-MM-DD
-    const today = new Date();
-    const todayStr = today.toISOString().split('T')[0];
-
-    const dateMatch = input.match(/\s+(today|tomorrow|mon|tue|wed|thu|fri|sat|sun|\d{4}-\d{2}-\d{2})\b/i);
-    if (dateMatch) {
-      const token = dateMatch[1].toLowerCase();
-      if (token === 'today') {
-        parsedDue = todayStr;
-      } else if (token === 'tomorrow') {
-        const tom = new Date(today);
-        tom.setDate(tom.getDate() + 1);
-        parsedDue = tom.toISOString().split('T')[0];
-      } else if (/^\d{4}-\d{2}-\d{2}$/.test(token)) {
-        parsedDue = token;
-      } else {
-        // Weekday name → find next occurrence
-        const days = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
-        const target = days.indexOf(token);
-        if (target !== -1) {
-          const diff = (target - today.getDay() + 7) % 7 || 7;
-          const next = new Date(today);
-          next.setDate(next.getDate() + diff);
-          parsedDue = next.toISOString().split('T')[0];
-        }
-      }
-      input = input.replace(dateMatch[0], '');
-    }
-
-    return { text: input.trim(), priority: parsedPriority, dueDate: parsedDue };
-  }
-
+  // ── Smart Add via shared parser (priority, estimate, recurrence, due, after:) ──
   function addTask() {
     if (!text.trim()) return;
-    const parsed = parseSmartAdd(text);
+    const parsed = parseSmartInput(text, {
+      currentPriority: priority,
+      currentDue: dueDate,
+      tasks: goal.tasks,
+    });
     if (!parsed.text) return;
     const task: Task = {
       id: generateId(),
@@ -129,10 +88,10 @@ export function TaskList({ goal, dispatch }: TaskListProps) {
       subtasks: [],
       createdAt: new Date().toISOString(),
       completedAt: null,
-      estimatedMinutes: null,
+      estimatedMinutes: parsed.estimatedMinutes,
       actualMinutes: 0,
-      recurrence: null,
-      blockedBy: null,
+      recurrence: parsed.recurrence,
+      blockedBy: parsed.blockedBy,
     };
     dispatch({ type: 'ADD_TASK', payload: { goalId: goal.id, task } });
     setText('');
