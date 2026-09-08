@@ -14,7 +14,6 @@ export const initialState: AppState = {
   remindersEnabled: true,
   plans: {},
   routines: [],
-  accent: '#2563eb',
 };
 
 // ─── Reducer ──────────────────────────────────────────────────────────────
@@ -372,11 +371,6 @@ export function appReducer(state: AppState, action: AppAction): AppState {
 
     case 'DELETE_ROUTINE':
       return { ...state, routines: state.routines.filter((r) => r.id !== action.payload.routineId) };
-
-    // ── Accent theme ───────────────────────────────────────────────────
-
-    case 'SET_ACCENT':
-      return { ...state, accent: action.payload.color };
 
     // ── Focus Time Tracking ────────────────────────────────────────────
 

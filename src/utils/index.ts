@@ -276,7 +276,6 @@ export function normalizeState(state: AppState): AppState {
       taskTexts: r.taskTexts ?? [],
       frequency: r.frequency ?? 'daily',
     })),
-    accent: state.accent ?? '#2563eb',
   };
 }
 

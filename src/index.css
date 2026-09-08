@@ -1,14 +1,9 @@
-/* ── Accent colour (set via JS from state.accent) ──────────────── */
-:root {
-  --accent: #2563eb;
-  --accent-rgb: 37, 99, 235;
-}
-
+/* ── Selection styling ───────────────────────────────────────────── */
 ::selection {
-  background-color: rgb(var(--accent-rgb) / 0.25);
+  background-color: rgb(37 99 235 / 0.25);
 }
 html.dark ::selection {
-  background-color: rgb(var(--accent-rgb) / 0.35);
+  background-color: rgb(37 99 235 / 0.35);
 }
 @tailwind base;
 @tailwind components;

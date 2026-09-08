@@ -284,11 +284,10 @@ describe('normalizeState', () => {
     expect(fixed.inbox[0].actualMinutes).toBe(0);
   });
 
-  it('defaults plans, routines, and accent for older saved data', () => {
+  it('defaults plans and routines for older saved data', () => {
     const fixed = normalizeState({ goals: [] as never[], inbox: [], templates: [] } as unknown as AppState);
     expect(fixed.plans).toEqual({});
     expect(fixed.routines).toEqual([]);
-    expect(fixed.accent).toBe('#2563eb');
   });
 });
 

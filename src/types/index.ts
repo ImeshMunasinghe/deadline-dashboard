@@ -75,11 +75,9 @@ export interface AppState {
   plans: Record<string, DailyPlan>;
   // Recurring routine checklists that spawn tasks on demand
   routines: Routine[];
-  // UI accent color (hex); applied as a CSS variable
-  accent: string;
 }
 
-export type ViewType = 'calendar' | 'today' | 'planner' | 'timeline' | 'analytics' | 'goal' | 'inbox';
+export type ViewType = 'calendar' | 'today' | 'planner' | 'timeline' | 'analytics' | 'goal' | 'inbox' | 'importexport';
 
 // Ordered queue of task IDs planned for a specific day
 export interface DailyPlan {
@@ -140,8 +138,6 @@ export type AppAction =
   // Routines
   | { type: 'ADD_ROUTINE'; payload: { routine: Routine } }
   | { type: 'DELETE_ROUTINE'; payload: { routineId: string } }
-  // Accent theme
-  | { type: 'SET_ACCENT'; payload: { color: string } }
   // Focus time tracking
   | { type: 'LOG_FOCUS_TIME'; payload: { taskId: string; minutes: number } }
   // Reminders
