@@ -65,18 +65,37 @@ export interface Reflection {
 export interface AppState {
   goals: Goal[];
   activeGoalId: string | null;
-  activeView: 'calendar' | 'today' | 'analytics' | 'goal' | 'inbox';
+  activeView: ViewType;
   inbox: Task[];
   templates: Goal[];
   reflections: Reflection[];
   dailyPlan: DailyPlan | null;
   remindersEnabled: boolean;
+  // Multi-day plans (YYYY-MM-DD → plan). Today's plan is mirrored in dailyPlan.
+  plans: Record<string, DailyPlan>;
+  // Recurring routine checklists that spawn tasks on demand
+  routines: Routine[];
+  // UI accent color (hex); applied as a CSS variable
+  accent: string;
 }
+
+export type ViewType = 'calendar' | 'today' | 'planner' | 'timeline' | 'analytics' | 'goal' | 'inbox';
 
 // Ordered queue of task IDs planned for a specific day
 export interface DailyPlan {
   date: string; // YYYY-MM-DD
   taskIds: string[];
+  // Optional time-block start times per task (HH:MM)
+  starts?: Record<string, string>;
+}
+
+// A routine checklist that can spawn the same set of tasks repeatedly
+export interface Routine {
+  id: string;
+  title: string;
+  goalId: string;
+  taskTexts: string[];
+  frequency: 'daily' | 'weekly' | 'weekdays';
 }
 
 // ─── Reducer Actions ──────────────────────────────────────────────────────
@@ -102,7 +121,7 @@ export type AppAction =
   | { type: 'UNDO' }
   | { type: 'REDO' }
   // Navigation
-  | { type: 'SET_ACTIVE_VIEW'; payload: { view: 'calendar' | 'today' | 'analytics' | 'goal' | 'inbox' } }
+  | { type: 'SET_ACTIVE_VIEW'; payload: { view: ViewType } }
   // Inbox
   | { type: 'ADD_TO_INBOX'; payload: { task: Task } }
   | { type: 'DELETE_FROM_INBOX'; payload: { taskId: string } }
@@ -117,6 +136,12 @@ export type AppAction =
   | { type: 'SET_DAILY_PLAN'; payload: { date: string; taskIds: string[] } }
   | { type: 'REORDER_DAILY_PLAN'; payload: { taskIds: string[] } }
   | { type: 'REMOVE_FROM_PLAN'; payload: { taskId: string } }
+  | { type: 'SET_PLAN_START'; payload: { date: string; taskId: string; start: string } }
+  // Routines
+  | { type: 'ADD_ROUTINE'; payload: { routine: Routine } }
+  | { type: 'DELETE_ROUTINE'; payload: { routineId: string } }
+  // Accent theme
+  | { type: 'SET_ACCENT'; payload: { color: string } }
   // Focus time tracking
   | { type: 'LOG_FOCUS_TIME'; payload: { taskId: string; minutes: number } }
   // Reminders

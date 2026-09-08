@@ -1,5 +1,5 @@
-import type { AppState, AppAction, Task } from '../types';
-import { normalizeState, generateId } from '../utils';
+import type { AppState, AppAction, Task, DailyPlan } from '../types';
+import { normalizeState, generateId, todayISO } from '../utils';
 
 // ─── Initial State ────────────────────────────────────────────────────────
 
@@ -12,6 +12,9 @@ export const initialState: AppState = {
   reflections: [],
   dailyPlan: null,
   remindersEnabled: true,
+  plans: {},
+  routines: [],
+  accent: '#2563eb',
 };
 
 // ─── Reducer ──────────────────────────────────────────────────────────────
@@ -317,24 +320,63 @@ export function appReducer(state: AppState, action: AppAction): AppState {
     // ── Daily Plan ─────────────────────────────────────────────────────
 
     case 'SET_DAILY_PLAN': {
-      return { ...state, dailyPlan: { date: action.payload.date, taskIds: action.payload.taskIds } };
+      const plan: DailyPlan = { date: action.payload.date, taskIds: action.payload.taskIds };
+      return {
+        ...state,
+        plans: { ...state.plans, [plan.date]: plan },
+        dailyPlan: plan.date === todayISO() ? plan : state.dailyPlan,
+      };
     }
 
     case 'REORDER_DAILY_PLAN': {
       if (!state.dailyPlan) return state;
-      return { ...state, dailyPlan: { ...state.dailyPlan, taskIds: action.payload.taskIds } };
+      const plan: DailyPlan = { ...state.dailyPlan, taskIds: action.payload.taskIds };
+      return {
+        ...state,
+        dailyPlan: plan,
+        plans: { ...state.plans, [plan.date]: plan },
+      };
     }
 
     case 'REMOVE_FROM_PLAN': {
       if (!state.dailyPlan) return state;
+      const plan: DailyPlan = {
+        ...state.dailyPlan,
+        taskIds: state.dailyPlan.taskIds.filter((id) => id !== action.payload.taskId),
+      };
       return {
         ...state,
-        dailyPlan: {
-          ...state.dailyPlan,
-          taskIds: state.dailyPlan.taskIds.filter((id) => id !== action.payload.taskId),
-        },
+        dailyPlan: plan,
+        plans: { ...state.plans, [plan.date]: plan },
       };
     }
+
+    case 'SET_PLAN_START': {
+      const existing = state.plans[action.payload.date];
+      if (!existing) return state;
+      const plan: DailyPlan = {
+        ...existing,
+        starts: { ...existing.starts, [action.payload.taskId]: action.payload.start },
+      };
+      return {
+        ...state,
+        plans: { ...state.plans, [plan.date]: plan },
+        dailyPlan: plan.date === todayISO() ? plan : state.dailyPlan,
+      };
+    }
+
+    // ── Routines ───────────────────────────────────────────────────────
+
+    case 'ADD_ROUTINE':
+      return { ...state, routines: [...state.routines, action.payload.routine] };
+
+    case 'DELETE_ROUTINE':
+      return { ...state, routines: state.routines.filter((r) => r.id !== action.payload.routineId) };
+
+    // ── Accent theme ───────────────────────────────────────────────────
+
+    case 'SET_ACCENT':
+      return { ...state, accent: action.payload.color };
 
     // ── Focus Time Tracking ────────────────────────────────────────────
 
