@@ -1,6 +1,7 @@
 # Active Context
 
 ## Current State
+- **Cloudflare Pages static deployment configured** (2026-09-08): Added `wrangler.toml` (`name = "deadline-dashboard"`, `pages_build_output_dir = "dist"`). Resolved the "invalid request body" UI bug by either using `true` as a no-op deploy command in the Pages UI, or deploying via `npx wrangler pages deploy dist/` CLI. No Workers/Functions needed — client-side only, data stored in localStorage.
 - **Theme/accent feature removed** (2026-09-08): user found it unnecessary. Removed `ThemeSettings.tsx`, `SET_ACCENT` action, `accent` field from `AppState`, `accent` from `initialState`, `hexToRgb` function, accent CSS variables, and the Themes tab from Sidebar. The `normalizeState` function and its test were updated to remove the `accent` default.
 - **Import/Export tab added to main navigation** (2026-09-08): new `ImportExportTab.tsx` combines JSON backup/restore + ICS calendar interop in one place. Removed duplicate ICS buttons from BottomToolbar.
   - Already in place before this session: weekly planner (PlannerView), smart scheduling/catch-up (computeCatchUp), time blocking (SET_PLAN_START), task templates + routines, goals-as-projects Gantt (TimelineView), productivity trends (computeWeeklyTrends), estimation coach (computeEstimateCoach), streak depth + heatmap (computeStreakStats), weekly digest + reflections journal (computeWeeklyDigest), ICS export/import (ics.ts), themes/accent picker (ThemeSettings), focus mode (FocusMode), command palette (CommandPalette), natural-language quick capture (smartAdd.ts).

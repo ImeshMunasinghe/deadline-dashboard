@@ -30,3 +30,4 @@
 - `parseImportedState` validation is minimal (only checks `goals` is an array).
 - Undo/redo history is capped at 20 and not persisted across reloads.
 - Main JS bundle > 500 kB (recharts); consider manualChunks.
+- `wrangler.toml` added for Cloudflare Pages static deployment (no Workers functions needed).
