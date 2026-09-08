@@ -1,3 +1,15 @@
+/* ── Accent colour (set via JS from state.accent) ──────────────── */
+:root {
+  --accent: #2563eb;
+  --accent-rgb: 37, 99, 235;
+}
+
+::selection {
+  background-color: rgb(var(--accent-rgb) / 0.25);
+}
+html.dark ::selection {
+  background-color: rgb(var(--accent-rgb) / 0.35);
+}
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -116,4 +128,23 @@ a:focus-visible,
 [role="button"]:focus-visible {
   outline: 2px solid #3b82f6;
   outline-offset: 2px;
+}
+
+/* ── Print styles for ReportView ──────────────────────────── */
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  .print\:hidden {
+    display: none !important;
+  }
+  .print\:px-0 {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+  .print\:py-0 {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+  }
 }
