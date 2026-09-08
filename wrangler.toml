@@ -1,7 +1,0 @@
-# Wrangler config for Cloudflare Pages (static site).
-# Build locally with `npm run build`, then deploy with:
-#   npx wrangler pages deploy dist/ --project-name=deadline-dashboard
-name = "deadline-dashboard"
-pages_build_output_dir = "dist"
-compatibility_date = "2025-01-01"
-
