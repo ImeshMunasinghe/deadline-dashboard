@@ -1,7 +1,8 @@
 # Active Context
 
 ## Current State
-- **All 20 premium features implemented** (2026-09-07): the full premium feature set is now in place. Features 12 (cloud sync), 13 (email/WhatsApp reminders), and 11 (Google Calendar two-way) were explicitly skipped per user approval — they require a backend and conflict with the client-only design.
+- **Theme/accent feature removed** (2026-09-08): user found it unnecessary. Removed `ThemeSettings.tsx`, `SET_ACCENT` action, `accent` field from `AppState`, `accent` from `initialState`, `hexToRgb` function, accent CSS variables, and the Themes tab from Sidebar. The `normalizeState` function and its test were updated to remove the `accent` default.
+- **Import/Export tab added to main navigation** (2026-09-08): new `ImportExportTab.tsx` combines JSON backup/restore + ICS calendar interop in one place. Removed duplicate ICS buttons from BottomToolbar.
   - Already in place before this session: weekly planner (PlannerView), smart scheduling/catch-up (computeCatchUp), time blocking (SET_PLAN_START), task templates + routines, goals-as-projects Gantt (TimelineView), productivity trends (computeWeeklyTrends), estimation coach (computeEstimateCoach), streak depth + heatmap (computeStreakStats), weekly digest + reflections journal (computeWeeklyDigest), ICS export/import (ics.ts), themes/accent picker (ThemeSettings), focus mode (FocusMode), command palette (CommandPalette), natural-language quick capture (smartAdd.ts).
   - New in this session:
     - **Feature 14 — Shared goals / read-only share page** (`src/components/ShareView.tsx`): public `ShareView` renders goal progress (ring, pace, milestones, task list) for anyone with the `?share=` link. CountdownCard already had the share button; App.tsx routes `?share=` param to this view and cleans the URL.
