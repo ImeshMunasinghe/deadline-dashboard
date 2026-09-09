@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { ChevronLeft, ChevronRight, CalendarDays, Flag, Target, Plus, X } from 'lucide-react';
 import type { AppState, AppAction, Priority } from '../types';
-import { buildMonthGrid, collectCalendarEvents, sortCalendarEvents, todayISO, generateId, getSriLankanHolidayMap } from '../utils';
+import { buildMonthGrid, collectCalendarEvents, sortCalendarEvents, todayISO, generateId, getSriLankanHolidayMap, goalTint } from '../utils';
 import type { CalendarEvent, HolidayInfo } from '../utils';
 import { Moon, Sparkles } from 'lucide-react';
 
@@ -143,17 +143,15 @@ function EventChip({
   onNavigate: (e: React.MouseEvent) => void;
   onToggle?: (e: React.MouseEvent) => void;
 }) {
+  const isCompleted = event.kind === 'task' && event.completed;
   return (
     <div
       className={`flex items-center gap-1 px-1 py-px rounded text-[11px] leading-snug transition-colors group/chip ${
-        event.kind === 'goal'
-          ? 'bg-blue-600/10 dark:bg-blue-500/15 text-blue-700 dark:text-blue-300'
-          : event.kind === 'milestone'
-          ? 'bg-violet-500/10 dark:bg-violet-500/15 text-violet-700 dark:text-violet-300'
-          : event.completed
+        isCompleted
           ? 'bg-slate-100 dark:bg-neutral-800 text-slate-400 dark:text-neutral-600'
-          : 'bg-slate-100 dark:bg-neutral-800 text-slate-600 dark:text-neutral-300'
+          : 'text-slate-600 dark:text-neutral-300'
       }`}
+      style={isCompleted ? undefined : { backgroundColor: goalTint(event.goalColor) }}
     >
       {/* Completion checkbox on task chips */}
       {event.kind === 'task' && onToggle && (
@@ -176,8 +174,12 @@ function EventChip({
       {event.kind === 'task' && !event.completed && !onToggle && (
         <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${PRIORITY_DOT[event.priority ?? 'low']}`} />
       )}
-      {event.kind === 'goal' && <Target size={9} className="shrink-0" aria-hidden />}
-      {event.kind === 'milestone' && <Flag size={9} className="shrink-0" aria-hidden />}
+      {event.kind === 'goal' && (
+        <Target size={9} className="shrink-0" style={{ color: event.goalColor }} aria-hidden />
+      )}
+      {event.kind === 'milestone' && (
+        <Flag size={9} className="shrink-0" style={{ color: event.goalColor }} aria-hidden />
+      )}
       <button
         onClick={onNavigate}
         title={`${event.goalTitle}: ${event.title}`}
@@ -426,10 +428,10 @@ export function CalendarView({ state, dispatch }: CalendarViewProps) {
             {/* Legend */}
             <div className="flex items-center gap-4 mt-3 px-1">
               <span className="flex items-center gap-1.5 text-[11px] text-slate-400 dark:text-neutral-600">
-                <Target size={10} className="text-blue-600" /> Goal deadline
+                <Target size={10} /> Goal · colored by goal
               </span>
               <span className="flex items-center gap-1.5 text-[11px] text-slate-400 dark:text-neutral-600">
-                <Flag size={10} className="text-violet-500" /> Milestone
+                <Flag size={10} /> Milestone
               </span>
               <span className="flex items-center gap-1.5 text-[11px] text-slate-400 dark:text-neutral-600">
                 <span className="w-2 h-2 rounded-full bg-red-500" /> Overdue
@@ -539,9 +541,12 @@ export function CalendarView({ state, dispatch }: CalendarViewProps) {
                 <ul className="flex flex-col gap-1.5">
                   {selectedEvents.map((event) => (
                     <li key={`${event.kind}-${event.id}`}>
-                      <div className="flex items-start gap-2 p-2 rounded-lg
+                      <div
+                          className="flex items-start gap-2 p-2 rounded-lg border-l-2
                         bg-slate-50 dark:bg-neutral-800/60
-                        hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors">
+                        hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors"
+                          style={{ borderColor: event.goalColor }}
+                        >
                         {/* Left icon / completion toggle */}
                         {event.kind === 'task' ? (
                           <button
@@ -565,9 +570,9 @@ export function CalendarView({ state, dispatch }: CalendarViewProps) {
                             )}
                           </button>
                         ) : event.kind === 'goal' ? (
-                          <Target size={14} className="mt-0.5 text-blue-600 shrink-0" aria-hidden />
+                          <Target size={14} className="mt-0.5 shrink-0" style={{ color: event.goalColor }} aria-hidden />
                         ) : (
-                          <Flag size={14} className="mt-0.5 text-violet-500 shrink-0" aria-hidden />
+                          <Flag size={14} className="mt-0.5 shrink-0" style={{ color: event.goalColor }} aria-hidden />
                         )}
 
                         {/* Title + meta — click to navigate to goal */}

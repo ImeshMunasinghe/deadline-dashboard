@@ -156,9 +156,24 @@ describe('computePace', () => {
 
 // ─── Calendar utils ───────────────────────────────────────────────────────
 
-import { buildMonthGrid, collectCalendarEvents, sortCalendarEvents } from './index';
+import { buildMonthGrid, collectCalendarEvents, sortCalendarEvents, normalizeGoalColor } from './index';
 import type { Goal } from '../types';
 
+describe('normalizeGoalColor', () => {
+  it('passes through valid lowercase hex', () => {
+    expect(normalizeGoalColor('#3b82f6', 2)).toBe('#3b82f6');
+  });
+  it('lowercases uppercase hex', () => {
+    expect(normalizeGoalColor('#3B82F6', 0)).toBe('#3b82f6');
+  });
+  it('maps legacy tailwind class to default blue', () => {
+    expect(normalizeGoalColor('bg-blue-600', 0)).toBe('#3b82f6');
+  });
+  it('falls back to a palette entry when missing', () => {
+    expect(normalizeGoalColor(undefined, 0)).toBe('#3b82f6');
+    expect(normalizeGoalColor('', 7)).toBe('#ef4444');
+  });
+});
 describe('buildMonthGrid', () => {
   it('produces 42 cells with correct inMonth flags and today marker', () => {
     const today = new Date(2026, 8, 6); // Sep 6 2026, local time

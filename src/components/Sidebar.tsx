@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 import type { Goal, AppState, GoalCategory } from '../types';
 import type { AppAction } from '../types';
-import { generateId, exportStateAsJSON, parseImportedState, formatDate } from '../utils';
+import { generateId, exportStateAsJSON, parseImportedState, formatDate, GOAL_COLOR_PALETTE } from '../utils';
 import { PaceBadge } from './CountdownCard';
 
 interface SidebarProps {
@@ -190,6 +190,9 @@ export function Sidebar({ state, dispatch, onOpenReflection }: SidebarProps) {
   const [newDate, setNewDate] = useState('');
   const [newTime, setNewTime] = useState('');
   const [newCategory, setNewCategory] = useState<GoalCategory>('Work');
+  const [newColor, setNewColor] = useState<string>(
+    GOAL_COLOR_PALETTE[state.goals.length % GOAL_COLOR_PALETTE.length]
+  );
   const [isOpen, setIsOpen] = useState(false);
 
   function handleAddGoal() {
@@ -208,13 +211,14 @@ export function Sidebar({ state, dispatch, onOpenReflection }: SidebarProps) {
       milestones: [],
       createdAt: new Date().toISOString(),
       category: newCategory,
-      color: 'bg-blue-600',
+      color: newColor,
     };
     dispatch({ type: 'ADD_GOAL', payload: goal });
     setNewTitle('');
     setNewDate('');
     setNewTime('');
     setNewCategory('Work');
+    setNewColor(GOAL_COLOR_PALETTE[(state.goals.length + 1) % GOAL_COLOR_PALETTE.length]);
     setShowNewGoal(false);
   }
 
@@ -346,6 +350,38 @@ export function Sidebar({ state, dispatch, onOpenReflection }: SidebarProps) {
                 <option key={cat} value={cat}>{cat}</option>
               ))}
             </select>
+            {/* Color swatches — pastel hint for calendar events */}
+            <div className="flex items-center gap-1.5" role="radiogroup" aria-label="Goal color">
+              {GOAL_COLOR_PALETTE.map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  role="radio"
+                  aria-checked={newColor === c}
+                  aria-label={`Color ${c}`}
+                  onClick={() => setNewColor(c)}
+                  className={`w-5 h-5 rounded-full border-2 transition-all ${
+                    newColor === c
+                      ? 'border-blue-500 ring-2 ring-blue-500/30 scale-110'
+                      : 'border-transparent hover:scale-110'
+                  }`}
+                  style={{ backgroundColor: c }}
+                />
+              ))}
+              <label
+                className="relative w-5 h-5 rounded-full border-2 border-slate-300 dark:border-neutral-600 overflow-hidden cursor-pointer hover:scale-110 transition-all shrink-0"
+                title="Custom color"
+              >
+                <span className="block w-full h-full bg-[conic-gradient(#f87171,#fbbf24,#34d399,#38bdf8,#a78bfa,#f472b6,#f87171)]" />
+                <input
+                  type="color"
+                  value={newColor}
+                  onChange={(e) => setNewColor(e.target.value)}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  aria-label="Custom goal color"
+                />
+              </label>
+            </div>
             <div className="flex gap-2">
               <button
                 onClick={handleAddGoal}
@@ -354,7 +390,7 @@ export function Sidebar({ state, dispatch, onOpenReflection }: SidebarProps) {
                 Add
               </button>
               <button
-                onClick={() => { setShowNewGoal(false); setNewTitle(''); setNewDate(''); setNewTime(''); }}
+                onClick={() => { setShowNewGoal(false); setNewTitle(''); setNewDate(''); setNewTime(''); setNewCategory('Work'); setNewColor(GOAL_COLOR_PALETTE[state.goals.length % GOAL_COLOR_PALETTE.length]); }}
                 className="flex-1 text-xs bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 dark:hover:bg-neutral-700 text-slate-500 dark:text-neutral-400 rounded-lg py-1.5 transition-colors"
               >
                 Cancel
@@ -403,7 +439,15 @@ export function Sidebar({ state, dispatch, onOpenReflection }: SidebarProps) {
                   className={`shrink-0 transition-transform ${isActive ? 'rotate-90 text-blue-600' : ''}`}
                 />
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-medium truncate">{goal.title}</p>
+                  <p className="text-xs font-medium truncate flex items-center gap-1.5">
+                    <span
+                      className="shrink-0 w-2 h-2 rounded-full"
+                      style={{ backgroundColor: goal.color }}
+                      title={`Color ${goal.color}`}
+                      aria-hidden
+                    />
+                    <span className="truncate">{goal.title}</span>
+                  </p>
                   <p className="text-[10px] text-slate-400 dark:text-neutral-600 truncate">
                     {formatDate(goal.targetDate)}
                   </p>

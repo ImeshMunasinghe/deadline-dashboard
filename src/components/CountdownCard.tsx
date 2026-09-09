@@ -3,7 +3,7 @@ import { Edit2, Check, X, Share2, Copy, Printer } from 'lucide-react';
 import type { Goal } from '../types';
 import type { AppAction } from '../types';
 import { useCountdown } from '../hooks';
-import { encodeGoalShare, computePace, formatDate } from '../utils';
+import { encodeGoalShare, computePace, formatDate, GOAL_COLOR_PALETTE } from '../utils';
 import type { GoalPace } from '../utils';
 
 // Pace chip: colored dot + label, no emojis
@@ -108,13 +108,14 @@ export function CountdownCard({ goal, dispatch, onReport }: CountdownCardProps) 
   const [editing, setEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(goal.title);
   const [editDate, setEditDate] = useState(goal.targetDate);
+  const [editColor, setEditColor] = useState(goal.color);
   const [copied, setCopied] = useState(false);
 
   function saveEdit() {
     if (!editTitle.trim() || !editDate) return;
     dispatch({
       type: 'UPDATE_GOAL',
-      payload: { id: goal.id, updates: { title: editTitle.trim(), targetDate: editDate } },
+      payload: { id: goal.id, updates: { title: editTitle.trim(), targetDate: editDate, color: editColor } },
     });
     setEditing(false);
   }
@@ -122,6 +123,7 @@ export function CountdownCard({ goal, dispatch, onReport }: CountdownCardProps) 
   function cancelEdit() {
     setEditTitle(goal.title);
     setEditDate(goal.targetDate);
+    setEditColor(goal.color);
     setEditing(false);
   }
 
@@ -176,6 +178,37 @@ export function CountdownCard({ goal, dispatch, onReport }: CountdownCardProps) 
                 onChange={(e) => setEditDate(e.target.value)}
                 className="text-sm bg-slate-100 dark:bg-neutral-800 text-slate-700 dark:text-neutral-300 rounded px-2 py-1 outline-none border border-slate-300 dark:border-neutral-700 focus:border-blue-600 w-full"
               />
+              <div className="flex items-center gap-1.5 flex-wrap" role="radiogroup" aria-label="Goal color">
+                {GOAL_COLOR_PALETTE.map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    role="radio"
+                    aria-checked={editColor === c}
+                    aria-label={`Color ${c}`}
+                    onClick={() => setEditColor(c)}
+                    className={`w-4 h-4 rounded-full border-2 transition-all ${
+                      editColor === c
+                        ? 'border-blue-500 ring-2 ring-blue-500/30 scale-110'
+                        : 'border-transparent hover:scale-110'
+                    }`}
+                    style={{ backgroundColor: c }}
+                  />
+                ))}
+                <label
+                  className="relative w-4 h-4 rounded-full border-2 border-slate-300 dark:border-neutral-600 overflow-hidden cursor-pointer hover:scale-110 transition-all"
+                  title="Custom color"
+                >
+                  <span className="block w-full h-full bg-[conic-gradient(#f87171,#fbbf24,#34d399,#38bdf8,#a78bfa,#f472b6,#f87171)]" />
+                  <input
+                    type="color"
+                    value={editColor}
+                    onChange={(e) => setEditColor(e.target.value)}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    aria-label="Custom goal color"
+                  />
+                </label>
+              </div>
             </div>
           ) : (
             <>

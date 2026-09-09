@@ -265,9 +265,9 @@ export function normalizeState(state: AppState): AppState {
   });
   return {
     ...state,
-    goals: (state.goals ?? []).map((g) => ({ ...g, tasks: (g.tasks ?? []).map(fixTask) })),
+    goals: (state.goals ?? []).map((g, i) => ({ ...g, color: normalizeGoalColor(g.color, i), tasks: (g.tasks ?? []).map(fixTask) })),
     inbox: (state.inbox ?? []).map(fixTask),
-    templates: (state.templates ?? []).map((g) => ({ ...g, tasks: (g.tasks ?? []).map(fixTask) })),
+    templates: (state.templates ?? []).map((g, i) => ({ ...g, color: normalizeGoalColor(g.color, i), tasks: (g.tasks ?? []).map(fixTask) })),
     plans: state.plans ?? {},
     routines: (state.routines ?? []).map((r) => ({
       id: r.id,
@@ -517,6 +517,46 @@ export {
 } from './ics';
 import type { HolidayInfo } from './holidays';
 
+// ─── Goal Colors ──────────────────────────────────────────────────────────
+// Each goal carries a color used as a pastel tint for its tasks/milestones on
+// the calendar and elsewhere. Colors are stored as 6-digit hex strings picked
+// to stay readable on both light and dark themes.
+export const GOAL_COLOR_PALETTE: readonly string[] = [
+  '#3b82f6', // blue
+  '#f97316', // orange
+  '#10b981', // emerald
+  '#8b5cf6', // violet
+  '#ec4899', // pink
+  '#06b6d4', // cyan
+  '#eab308', // amber
+  '#ef4444', // red
+];
+
+// Legacy goals stored a Tailwind class instead of a hex value.
+const LEGACY_GOAL_COLORS: Record<string, string> = {
+  'bg-blue-600': '#3b82f6',
+};
+
+// Returns a valid 6-digit hex color (lowercased). Falls back to the palette
+// entry at `index` (pass the goal's position so goals get distinct colors).
+export function normalizeGoalColor(color: string | undefined | null, index = 0): string {
+  const trimmed = (color ?? '').trim();
+  if (/^#[0-9a-fA-F]{6}$/.test(trimmed)) return trimmed.toLowerCase();
+  if (LEGACY_GOAL_COLORS[trimmed]) return LEGACY_GOAL_COLORS[trimmed];
+  return GOAL_COLOR_PALETTE[index % GOAL_COLOR_PALETTE.length];
+}
+
+// True when the string is a 6-digit hex color (tailwind-class legacy values
+// are fine too and will be normalized to the default palette color).
+export function isGoalColor(color: string | undefined | null): boolean {
+  return !!color && /^#[0-9a-fA-F]{6}$/.test(color.trim());
+}
+
+// Pastel hint: the goal color at low (~15%) alpha so it reads as a soft wash in
+// both light and dark themes rather than a solid fill.
+export function goalTint(color: string): string {
+  return `${normalizeGoalColor(color)}26`;
+}
 export interface CalendarEvent {
   kind: 'goal' | 'task' | 'milestone';
   id: string;
