@@ -27,7 +27,6 @@ import { PaceBadge } from './CountdownCard';
 interface SidebarProps {
   state: AppState;
   dispatch: React.Dispatch<AppAction>;
-  onOpenReflection: () => void;
 }
 
 // ── Fixed bottom-left toolbar ──────────────────────────────────────────────
@@ -247,7 +246,7 @@ export function BottomToolbar({ state, dispatch }: {
 }
 
 // ── Main sidebar ───────────────────────────────────────────────────────────
-export function Sidebar({ state, dispatch, onOpenReflection }: SidebarProps) {
+export function Sidebar({ state, dispatch }: SidebarProps) {
   const [showNewGoal, setShowNewGoal] = useState(false);
   const [newTitle, setNewTitle] = useState('');
   const [newDate, setNewDate] = useState('');
@@ -322,6 +321,7 @@ export function Sidebar({ state, dispatch, onOpenReflection }: SidebarProps) {
             { view: 'analytics' as const, icon: <BarChart2 size={15} />, label: 'Analytics' },
             { view: 'importexport' as const, icon: <Download size={15} />, label: 'Import/Export' },
             { view: 'inbox' as const, icon: <Inbox size={15} />, label: 'Inbox', badge: state.inbox?.length },
+            { view: 'reflection' as const, icon: <BookOpen size={15} />, label: 'Reflection', badge: state.reflections.filter(r => r.content && r.date !== '__trigger__').length },
           ].map(({ view, icon, label, badge }) => (
             <button
               key={view}
@@ -341,24 +341,6 @@ export function Sidebar({ state, dispatch, onOpenReflection }: SidebarProps) {
               )}
             </button>
           ))}
-
-          {/* Reflect */}
-          <button
-            onClick={() => {
-              dispatch({ type: 'SET_ACTIVE_VIEW', payload: { view: 'analytics' } });
-              setIsOpen(false);
-              onOpenReflection();
-            }}
-            className="flex items-center gap-2 px-2 py-2 rounded-lg text-left text-xs font-medium transition-all text-slate-500 dark:text-neutral-400 hover:bg-slate-100 dark:hover:bg-neutral-900 hover:text-slate-800 dark:hover:text-neutral-200"
-          >
-            <BookOpen size={15} />
-            <span>Reflect</span>
-            {state.reflections.filter(r => r.content && r.date !== '__trigger__').length > 0 && (
-              <span className="ml-auto bg-slate-100 dark:bg-neutral-800 text-slate-600 dark:text-neutral-400 text-[10px] px-1.5 py-0.5 rounded-full">
-                {state.reflections.filter(r => r.content && r.date !== '__trigger__').length}
-              </span>
-            )}
-          </button>
         </nav>
 
         {/* Divider */}

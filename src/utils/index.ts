@@ -310,7 +310,7 @@ export interface LaunchParams {
   focus: boolean;
 }
 
-const VIEW_TYPES: ViewType[] = ['calendar', 'today', 'planner', 'timeline', 'analytics', 'goal', 'inbox', 'importexport'];
+const VIEW_TYPES: ViewType[] = ['calendar', 'today', 'planner', 'timeline', 'analytics', 'goal', 'inbox', 'importexport', 'reflection'];
 
 export function parseLaunchParams(search: string): LaunchParams {
   // Tolerate both window.location.search ('?a=b') and full-path forms ('/?a=b'):

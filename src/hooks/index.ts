@@ -236,9 +236,13 @@ function tickPomodoro() {
     || tick.running !== pomoState.running
     || tick.sessions !== pomoState.sessions
     || completed;
-  if (!changed) return;
-  pomoState = { phase: tick.phase, endsAt: tick.endsAt, running: tick.running, sessions: tick.sessions };
-  persistPomo();
+  if (changed) {
+    pomoState = { phase: tick.phase, endsAt: tick.endsAt, running: tick.running, sessions: tick.sessions };
+    persistPomo();
+  }
+  // Notify every tick (not only on transitions) so the floating countdown
+  // re-renders and ticks down each second. usePomodoroMeta() subscribers are
+  // unaffected — they bail out when running/phase/sessions are unchanged.
   notifyPomo();
 }
 

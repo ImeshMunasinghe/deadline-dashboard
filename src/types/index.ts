@@ -81,7 +81,7 @@ export interface AppState {
   focusTargetId: string | null;
 }
 
-export type ViewType = 'calendar' | 'today' | 'planner' | 'timeline' | 'analytics' | 'goal' | 'inbox' | 'importexport';
+export type ViewType = 'calendar' | 'today' | 'planner' | 'timeline' | 'analytics' | 'goal' | 'inbox' | 'importexport' | 'reflection';
 
 // Ordered queue of task IDs planned for a specific day
 export interface DailyPlan {

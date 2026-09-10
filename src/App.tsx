@@ -8,6 +8,7 @@ import { NotesMilestones } from './components/NotesMilestones';
 import { EmptyState } from './components/EmptyState';
 import { TodayView } from './components/TodayView';
 import { AnalyticsView } from './components/AnalyticsView';
+import { ReflectionView } from './components/ReflectionView';
 import { CalendarView } from './components/CalendarView';
 import { PlannerView } from './components/PlannerView';
 import { TimelineView } from './components/TimelineView';
@@ -88,17 +89,8 @@ export default function App() {
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
-  // Auto-open reflection after 5 PM once per day
-  useEffect(() => {
-    const todayStr = new Date().toISOString().split('T')[0];
-    const hasReflectedToday = state.reflections.some(
-      (r) => r.date === todayStr && r.date !== '__trigger__'
-    );
-    const hour = new Date().getHours();
-    if (hour >= 17 && !hasReflectedToday) {
-      setReflectionOpen(true);
-    }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  // Auto-open reflection after 5 PM removed (2026-09-10) — reflections are now
+  // written deliberately from the Reflection page via onOpenReflection.
 
   // Handle read-only share param on load — show public ShareView
   useEffect(() => {
@@ -214,14 +206,15 @@ export default function App() {
   return (
     <div className="flex min-h-screen bg-slate-50 dark:bg-neutral-950 text-slate-800 dark:text-neutral-200 font-sans">
       {/* ── Sidebar */}
-      <Sidebar state={state} dispatch={dispatch} onOpenReflection={() => setReflectionOpen(true)} />
+      <Sidebar state={state} dispatch={dispatch} />
 
       {/* ── Main area */}
       <main className="flex-1 flex flex-col overflow-y-auto">
         <div key={state.activeView} className="animate-fade-in-up">
         {state.activeView === 'calendar' && <CalendarView state={state} dispatch={dispatch} />}
         {state.activeView === 'today' && <TodayView state={state} dispatch={dispatch} />}
-        {state.activeView === 'analytics' && <AnalyticsView state={state} onOpenReflection={() => setReflectionOpen(true)} />}
+        {state.activeView === 'analytics' && <AnalyticsView state={state} />}
+        {state.activeView === 'reflection' && <ReflectionView state={state} onOpenReflection={() => setReflectionOpen(true)} />}
         {state.activeView === 'planner' && <PlannerView state={state} dispatch={dispatch} />}
         {state.activeView === 'timeline' && <TimelineView state={state} dispatch={dispatch} />}
         {state.activeView === 'importexport' && <ImportExportTab state={state} dispatch={dispatch} />}

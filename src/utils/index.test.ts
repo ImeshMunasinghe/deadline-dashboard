@@ -718,6 +718,7 @@ describe('normalizeState reminder fields', () => {
 describe('parseLaunchParams', () => {
   it('parses shortcut deep-links', () => {
     expect(parseLaunchParams('/?view=today')).toEqual({ view: 'today', capture: false, focus: false });
+    expect(parseLaunchParams('/?view=reflection')).toEqual({ view: 'reflection', capture: false, focus: false });
     expect(parseLaunchParams('/?view=inbox&capture=1')).toEqual({ view: 'inbox', capture: true, focus: false });
     expect(parseLaunchParams('/?view=today&focus=1')).toEqual({ view: 'today', capture: false, focus: true });
   });
