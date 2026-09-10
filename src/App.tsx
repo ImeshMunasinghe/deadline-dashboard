@@ -205,6 +205,7 @@ export default function App() {
 
       {/* ── Main area */}
       <main className="flex-1 flex flex-col overflow-y-auto">
+        <div key={state.activeView} className="animate-fade-in-up">
         {state.activeView === 'calendar' && <CalendarView state={state} dispatch={dispatch} />}
         {state.activeView === 'today' && <TodayView state={state} dispatch={dispatch} />}
         {state.activeView === 'analytics' && <AnalyticsView state={state} onOpenReflection={() => setReflectionOpen(true)} />}
@@ -214,6 +215,7 @@ export default function App() {
         {(state.activeView === 'goal' || state.activeView === 'inbox') && (
           <GoalView activeGoal={activeGoal} dispatch={dispatch} onReport={setReportGoal} focusTargetId={state.focusTargetId} />
         )}
+        </div>
       </main>
 
       {/* ── Floating Pomodoro Timer — always visible in the bottom-right corner */}

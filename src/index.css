@@ -83,6 +83,39 @@ html.dark input[type="time"]::-webkit-calendar-picker-indicator {
   animation: slideUp 0.3s ease forwards;
 }
 
+/* ── View transition — Vercel-style ease-out, 200ms ──────── */
+@keyframes fadeInUp {
+  from { transform: translateY(8px); opacity: 0; }
+  to   { transform: translateY(0);   opacity: 1; }
+}
+.animate-fade-in-up {
+  animation: fadeInUp 0.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* ── Elevated floating surface (modals, palette, floating widgets) ── */
+@layer components {
+  .floating-surface {
+    @apply bg-white dark:bg-neutral-900 rounded-xl
+      ring-1 ring-black/5 dark:ring-white/10
+      shadow-[0_8px_30px_rgb(0,0,0,0.12)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.6)];
+  }
+
+  /* Springy press feedback for checkboxes and small buttons */
+  .active-rebound {
+    @apply transition-transform duration-100 active:scale-75;
+  }
+
+  /* Ambient breathing glow for the running Pomodoro timer */
+  @keyframes breathe {
+    0%, 100% { box-shadow: 0 0 14px 0 rgb(37 99 235 / 0.35); }
+    50%      { box-shadow: 0 0 26px 4px rgb(37 99 235 / 0.55); }
+  }
+  .ambient-glow {
+    animation: breathe 2.4s ease-in-out infinite;
+    border-radius: 9999px;
+  }
+}
+
 /* ── Shared component classes ────────────────────────────── */
 @layer components {
   /* Standard surface card used across views */

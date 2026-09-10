@@ -58,7 +58,7 @@ export function QuickCapture({ dispatch }: QuickCaptureProps) {
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-start justify-center pt-[20vh] px-4">
-      <div className="bg-white dark:bg-neutral-900 border border-slate-300 dark:border-neutral-700 rounded-xl shadow-2xl w-full max-w-lg p-4">
+      <div className="floating-surface w-full max-w-lg p-4">
         <div className="flex flex-col gap-2">
           <input
             ref={inputRef}
