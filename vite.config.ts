@@ -8,7 +8,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg'],
+      includeAssets: ['favicon.svg', 'pwa-192x192.png', 'pwa-512x512.png', 'pwa-maskable-512x512.png'],
       manifest: {
         name: 'Deadline Dashboard',
         short_name: 'Deadlines',
@@ -23,21 +23,21 @@ export default defineConfig({
             short_name: 'Today',
             description: "View today's plan",
             url: '/?view=today',
-            icons: [{ src: 'favicon.svg', sizes: 'any', type: 'image/svg+xml' }],
+            icons: [{ src: 'pwa-192x192.png', sizes: '192x192', type: 'image/png' }],
           },
           {
             name: 'New task',
             short_name: 'New task',
             description: 'Quick capture a new task',
             url: '/?view=inbox&capture=1',
-            icons: [{ src: 'favicon.svg', sizes: 'any', type: 'image/svg+xml' }],
+            icons: [{ src: 'pwa-192x192.png', sizes: '192x192', type: 'image/png' }],
           },
           {
             name: 'Focus mode',
             short_name: 'Focus',
             description: 'Start a focus session',
             url: '/?view=today&focus=1',
-            icons: [{ src: 'favicon.svg', sizes: 'any', type: 'image/svg+xml' }],
+            icons: [{ src: 'pwa-192x192.png', sizes: '192x192', type: 'image/png' }],
           },
         ],
         share_target: {
@@ -50,18 +50,9 @@ export default defineConfig({
           },
         },
         icons: [
-          {
-            src: 'favicon.svg',
-            sizes: 'any',
-            type: 'image/svg+xml',
-            purpose: 'any'
-          },
-          {
-            src: 'favicon.svg',
-            sizes: 'any',
-            type: 'image/svg+xml',
-            purpose: 'maskable'
-          }
+          { src: 'pwa-192x192.png', sizes: '192x192', type: 'image/png' },
+          { src: 'pwa-512x512.png', sizes: '512x512', type: 'image/png' },
+          { src: 'pwa-maskable-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' }
         ]
       }
     })

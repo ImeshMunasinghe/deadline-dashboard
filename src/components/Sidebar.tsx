@@ -75,11 +75,27 @@ function LeadHoursControl({ state, dispatch }: { state: AppState; dispatch: Reac
   );
 }
 
+// Chromium fires beforeinstallprompt when the app meets installability criteria
+interface InstallPromptEvent extends Event {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: string }>;
+}
+
 export function BottomToolbar({ state, dispatch }: {
   state: AppState;
   dispatch: React.Dispatch<AppAction>;
 }) {
   const [isDark, setIsDark] = useState(() => localStorage.getItem('theme') === 'dark');
+  const [installEvt, setInstallEvt] = useState<InstallPromptEvent | null>(null);
+
+  useEffect(() => {
+    const onPrompt = (e: Event) => {
+      e.preventDefault();
+      setInstallEvt(e as InstallPromptEvent);
+    };
+    window.addEventListener('beforeinstallprompt', onPrompt);
+    return () => window.removeEventListener('beforeinstallprompt', onPrompt);
+  }, []);
 
   useEffect(() => {
     if (isDark) {
@@ -111,12 +127,9 @@ export function BottomToolbar({ state, dispatch }: {
   }
 
   function handleInstall() {
-    // PWA install prompt (Chromium) — best-effort
-    if ('install' in navigator) {
-      (navigator as { install: () => Promise<unknown> }).install()
-        .then(() => alert('App installed to your device.'))
-        .catch(() => {});
-    }
+    if (!installEvt) return;
+    void installEvt.prompt();
+    installEvt.userChoice.finally(() => setInstallEvt(null));
   }
 
   return (
@@ -158,13 +171,16 @@ export function BottomToolbar({ state, dispatch }: {
       >
         <CalendarRange size={15} />
       </button>
-      <button
-        onClick={handleInstall}
-        title="Install as an app"
-        className="icon-btn w-9 h-9"
-      >
-        <Download size={15} />
-      </button>
+      {installEvt && (
+        <button
+          onClick={handleInstall}
+          title="Install as an app"
+          aria-label="Install as an app"
+          className="icon-btn w-9 h-9"
+        >
+          <Download size={15} />
+        </button>
+      )}
       <button
         onClick={() => {
           if ('Notification' in window && Notification.permission === 'default') {

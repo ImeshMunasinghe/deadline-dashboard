@@ -20,7 +20,7 @@ import { ShareView } from './components/ShareView';
 import { ReportView } from './components/ReportView';
 import { ToastList } from './components/ToastList';
 import { useAppState, useDeadlineReminders } from './hooks';
-import { decodeGoalShare, generateId, getTaskStats, parseSmartInput } from './utils';
+import { decodeGoalShare, generateId, getTaskStats, parseLaunchParams, parseSmartInput } from './utils';
 import type { Goal, AppAction } from './types';
 
 function GoalView({ activeGoal, dispatch, onReport, focusTargetId }: { activeGoal: Goal | null, dispatch: React.Dispatch<AppAction>, onReport?: (goal: Goal) => void, focusTargetId: string | null }) {
@@ -68,6 +68,9 @@ export default function App() {
   const [reflectionOpen, setReflectionOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [focusOpen, setFocusOpen] = useState(false);
+
+  // PWA shortcut deep-links (?view=&capture=&focus=) — read once on mount
+  const [launch] = useState(() => parseLaunchParams(window.location.search));
 
   // Global shortcuts: Ctrl+P palette, Ctrl+G focus mode
   useEffect(() => {
@@ -152,6 +155,16 @@ export default function App() {
     window.history.replaceState({}, '', clean.toString());
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Apply PWA shortcut deep-links once on mount, then clean the URL
+  useEffect(() => {
+    if (launch.view) dispatch({ type: 'SET_ACTIVE_VIEW', payload: { view: launch.view } });
+    if (launch.focus) setFocusOpen(true);
+    if (!launch.view && !launch.focus) return;
+    const clean = new URL(window.location.href);
+    ['view', 'capture', 'focus'].forEach((k) => clean.searchParams.delete(k));
+    window.history.replaceState({}, '', clean.toString());
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   const activeGoal = state.goals.find((g) => g.id === state.activeGoalId) ?? null;
 
   // Track task progress to trigger confetti on 100% completion
@@ -220,7 +233,7 @@ export default function App() {
 
       {/* ── Floating Pomodoro Timer — always visible in the bottom-right corner */}
       <PomodoroTimer state={state} dispatch={dispatch} />
-      <QuickCapture dispatch={dispatch} />
+      <QuickCapture dispatch={dispatch} autoOpen={launch.capture} />
       <ToastList />
       <DailyReflection
         state={state}

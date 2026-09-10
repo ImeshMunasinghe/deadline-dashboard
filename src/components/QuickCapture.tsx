@@ -4,10 +4,11 @@ import { generateId, parseSmartInput } from '../utils';
 
 interface QuickCaptureProps {
   dispatch: React.Dispatch<AppAction>;
+  autoOpen?: boolean;
 }
 
-export function QuickCapture({ dispatch }: QuickCaptureProps) {
-  const [isOpen, setIsOpen] = useState(false);
+export function QuickCapture({ dispatch, autoOpen = false }: QuickCaptureProps) {
+  const [isOpen, setIsOpen] = useState(autoOpen);
   const [text, setText] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
 

@@ -1,4 +1,4 @@
-import type { CountdownState, Goal, AppState, Priority, Task } from '../types';
+import type { CountdownState, Goal, AppState, Priority, Task, ViewType } from '../types';
 
 // ─── ID Generation ────────────────────────────────────────────────────────
 
@@ -297,6 +297,30 @@ export function computePomodoroTick(
     sessions: sessions + (didCompleteFocus ? 1 : 0),
     secondsLeft: Math.max(0, Math.ceil((nextEndsAt - now) / 1000)),
     completedFocus: didCompleteFocus ? 1 : 0,
+  };
+}
+
+// ─── PWA Launch Params ────────────────────────────────────────────────────
+// Parses the manifest-shortcut deep-link params (?view=&capture=&focus=).
+// Unknown or missing values are ignored.
+
+export interface LaunchParams {
+  view: ViewType | null;
+  capture: boolean;
+  focus: boolean;
+}
+
+const VIEW_TYPES: ViewType[] = ['calendar', 'today', 'planner', 'timeline', 'analytics', 'goal', 'inbox', 'importexport'];
+
+export function parseLaunchParams(search: string): LaunchParams {
+  // Tolerate both window.location.search ('?a=b') and full-path forms ('/?a=b'):
+  // URLSearchParams only strips a leading '?', not a leading path.
+  const params = new URLSearchParams(search.slice(search.indexOf('?') + 1));
+  const view = params.get('view');
+  return {
+    view: view ? VIEW_TYPES.find((v) => v === view) ?? null : null,
+    capture: params.get('capture') === '1',
+    focus: params.get('focus') === '1',
   };
 }
 

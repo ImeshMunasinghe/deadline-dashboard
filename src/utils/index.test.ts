@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach, beforeAll } from 'vitest';
-import { computeCountdown } from './index';
+import { computeCountdown, parseLaunchParams } from './index';
 
 describe('computeCountdown', () => {
   beforeEach(() => {
@@ -710,5 +710,21 @@ describe('normalizeState reminder fields', () => {
     const normalized = normalizeState(legacy);
     expect(normalized.remindersEnabled).toBe(true);
     expect(normalized.reminderLeadHours).toBe(24);
+  });
+});
+
+// ─── PWA launch params (manifest shortcut deep-links) ────────────────────
+
+describe('parseLaunchParams', () => {
+  it('parses shortcut deep-links', () => {
+    expect(parseLaunchParams('/?view=today')).toEqual({ view: 'today', capture: false, focus: false });
+    expect(parseLaunchParams('/?view=inbox&capture=1')).toEqual({ view: 'inbox', capture: true, focus: false });
+    expect(parseLaunchParams('/?view=today&focus=1')).toEqual({ view: 'today', capture: false, focus: true });
+  });
+
+  it('ignores unknown views and flags only when exactly 1', () => {
+    expect(parseLaunchParams('/?view=nonexistent')).toEqual({ view: null, capture: false, focus: false });
+    expect(parseLaunchParams('/?capture=0&focus=1')).toEqual({ view: null, capture: false, focus: true });
+    expect(parseLaunchParams('/')).toEqual({ view: null, capture: false, focus: false });
   });
 });
