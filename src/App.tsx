@@ -31,7 +31,7 @@ function GoalView({ activeGoal, dispatch, onReport, focusTargetId }: { activeGoa
       {/* Row 1: Countdown (wide) + Chart */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="lg:col-span-2">
-          <CountdownCard goal={activeGoal} dispatch={dispatch} onReport={onReport} />
+          <CountdownCard key={activeGoal.id} goal={activeGoal} dispatch={dispatch} onReport={onReport} />
         </div>
         <div>
           <ProgressChart goal={activeGoal} />
