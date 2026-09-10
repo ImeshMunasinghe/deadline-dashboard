@@ -1,6 +1,7 @@
 # Progress
 
 ## Completed ✅
+# Workflow rule: all future tasks follow the Ponytail lazy-senior-dev skill in `.clinerules` (smallest working diff, reuse, no unrequested abstractions, `ponytail:` comments on deliberate corner-cuts).
 - Background-safe per-task Pomodoro: timestamp-based shared singleton timer (`usePomodoro` in `src/hooks/index.ts`, pure `computePomodoroTick` in `src/utils`), per-task play/pause button on `TaskItem`, shared focus target in `AppState.focusTargetId`; timer survives tab switching and refresh; fixed never-firing focus-time logging
 - Fixed Analytics "Write Today's Reflection" button (was dispatching a dead `open-reflection` CustomEvent + junk `__trigger__` reflection); now opens the DailyReflection modal via an `onOpenReflection` prop wired in App.tsx (`AnalyticsView.tsx`, `App.tsx`)
 - Core data model & reducer (goals, tasks, subtasks, milestones, inbox, templates, reflections) — `src/types`, `src/hooks/reducer.ts`
