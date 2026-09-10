@@ -1,6 +1,7 @@
 # Progress
 
 ## Completed ✅
+- Fixed Analytics "Write Today's Reflection" button (was dispatching a dead `open-reflection` CustomEvent + junk `__trigger__` reflection); now opens the DailyReflection modal via an `onOpenReflection` prop wired in App.tsx (`AnalyticsView.tsx`, `App.tsx`)
 - Core data model & reducer (goals, tasks, subtasks, milestones, inbox, templates, reflections) — `src/types`, `src/hooks/reducer.ts`
 - State persistence + hydration with corrupted-storage recovery + field migration (`normalizeState`)
 - Undo/redo history (20 states) with Ctrl+Z / Ctrl+Shift+Z / Ctrl+Y

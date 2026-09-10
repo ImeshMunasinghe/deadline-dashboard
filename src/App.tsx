@@ -207,7 +207,7 @@ export default function App() {
       <main className="flex-1 flex flex-col overflow-y-auto">
         {state.activeView === 'calendar' && <CalendarView state={state} dispatch={dispatch} />}
         {state.activeView === 'today' && <TodayView state={state} dispatch={dispatch} />}
-        {state.activeView === 'analytics' && <AnalyticsView state={state} dispatch={dispatch} />}
+        {state.activeView === 'analytics' && <AnalyticsView state={state} onOpenReflection={() => setReflectionOpen(true)} />}
         {state.activeView === 'planner' && <PlannerView state={state} dispatch={dispatch} />}
         {state.activeView === 'timeline' && <TimelineView state={state} dispatch={dispatch} />}
         {state.activeView === 'importexport' && <ImportExportTab state={state} dispatch={dispatch} />}

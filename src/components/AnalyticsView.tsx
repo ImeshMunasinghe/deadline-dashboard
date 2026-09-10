@@ -12,7 +12,7 @@ import {
   Cell
 } from 'recharts';
 import { Flame, Printer, TrendingUp, Gauge, CalendarHeart } from 'lucide-react';
-import type { AppState, AppAction } from '../types';
+import type { AppState } from '../types';
 import {
   computeWeeklyTrends,
   computeEstimateCoach,
@@ -38,10 +38,10 @@ function useIsDark(): boolean {
 
 interface AnalyticsViewProps {
   state: AppState;
-  dispatch: React.Dispatch<AppAction>;
+  onOpenReflection: () => void;
 }
 
-export function AnalyticsView({ state, dispatch }: AnalyticsViewProps) {
+export function AnalyticsView({ state, onOpenReflection }: AnalyticsViewProps) {
   const isDark = useIsDark();
   // Aggregate all tasks
   const allTasks = useMemo(() => state.goals.flatMap(g => g.tasks), [state.goals]);
@@ -332,17 +332,7 @@ export function AnalyticsView({ state, dispatch }: AnalyticsViewProps) {
             <p className="text-xs text-slate-400 dark:text-neutral-500 mt-0.5">Your end-of-day journal entries</p>
           </div>
           <button
-            onClick={() => {
-              const todayStr = new Date().toISOString().split('T')[0];
-              // Remove today's reflection so the modal reopens
-              const hasToday = state.reflections.some(r => r.date === todayStr);
-              if (hasToday) {
-                // Remove so modal triggers again
-                dispatch({ type: 'SAVE_REFLECTION', payload: { reflection: { date: '__trigger__', content: '' } } });
-              }
-              // We trigger DailyReflection modal via a custom event
-              window.dispatchEvent(new CustomEvent('open-reflection'));
-            }}
+            onClick={onOpenReflection}
             className="text-xs px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium transition-colors"
           >
             + Write Today's Reflection
