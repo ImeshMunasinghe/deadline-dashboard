@@ -75,11 +75,15 @@ function LeadHoursControl({ state, dispatch }: { state: AppState; dispatch: Reac
   );
 }
 
-// Chromium fires beforeinstallprompt when the app meets installability criteria
+// Chromium fires beforeinstallprompt when the app meets installability criteria.
+// iOS Safari never fires it — there the user must use Share > Add to Home Screen.
 interface InstallPromptEvent extends Event {
   prompt: () => Promise<void>;
   userChoice: Promise<{ outcome: string }>;
 }
+
+const IS_IOS = /iphone|ipad|ipod/i.test(navigator.userAgent)
+  || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
 export function BottomToolbar({ state, dispatch }: {
   state: AppState;
@@ -87,6 +91,11 @@ export function BottomToolbar({ state, dispatch }: {
 }) {
   const [isDark, setIsDark] = useState(() => localStorage.getItem('theme') === 'dark');
   const [installEvt, setInstallEvt] = useState<InstallPromptEvent | null>(null);
+  const [installHelp, setInstallHelp] = useState(false);
+  const [isStandalone] = useState(() =>
+    window.matchMedia('(display-mode: standalone)').matches
+    || 'standalone' in window.navigator
+  );
 
   useEffect(() => {
     const onPrompt = (e: Event) => {
@@ -127,13 +136,17 @@ export function BottomToolbar({ state, dispatch }: {
   }
 
   function handleInstall() {
-    if (!installEvt) return;
-    void installEvt.prompt();
-    installEvt.userChoice.finally(() => setInstallEvt(null));
+    if (installEvt) {
+      void installEvt.prompt();
+      installEvt.userChoice.finally(() => setInstallEvt(null));
+    } else {
+      // No native prompt (e.g. iOS Safari, or Chrome not ready yet) — show manual steps
+      setInstallHelp(true);
+    }
   }
 
   return (
-    <div className="fixed bottom-4 left-4 z-50 flex flex-row gap-2">
+    <div className="fixed bottom-4 left-4 z-50 flex max-w-[calc(100vw-2rem)] flex-row flex-wrap gap-2">
       <button
         onClick={() => setIsDark((d) => !d)}
         title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
@@ -171,10 +184,10 @@ export function BottomToolbar({ state, dispatch }: {
       >
         <CalendarRange size={15} />
       </button>
-      {installEvt && (
+      {!isStandalone && (
         <button
           onClick={handleInstall}
-          title="Install as an app"
+          title={installEvt ? 'Install as an app' : 'How to install this app'}
           aria-label="Install as an app"
           className="icon-btn w-9 h-9"
         >
@@ -195,6 +208,40 @@ export function BottomToolbar({ state, dispatch }: {
         <Bell size={15} />
       </button>
       <LeadHoursControl state={state} dispatch={dispatch} />
+
+      {installHelp && (
+        <div
+          className="fixed inset-0 z-[100] flex items-end justify-center bg-black/60 p-4 backdrop-blur-sm sm:items-center"
+          onClick={() => setInstallHelp(false)}
+        >
+          <div
+            className="floating-surface w-full max-w-sm p-5"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-base font-semibold text-slate-800 dark:text-neutral-100">
+              Install Deadline Dashboard
+            </h3>
+            {IS_IOS ? (
+              <ol className="mt-3 list-decimal space-y-1 pl-5 text-sm text-slate-600 dark:text-neutral-300">
+                <li>Open this page in Safari</li>
+                <li>Tap the Share button</li>
+                <li>Choose Add to Home Screen</li>
+              </ol>
+            ) : (
+              <ol className="mt-3 list-decimal space-y-1 pl-5 text-sm text-slate-600 dark:text-neutral-300">
+                <li>Open the browser menu (three dots)</li>
+                <li>Tap Install app or Add to Home Screen</li>
+              </ol>
+            )}
+            <button
+              onClick={() => setInstallHelp(false)}
+              className="mt-4 w-full rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
+            >
+              Got it
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
