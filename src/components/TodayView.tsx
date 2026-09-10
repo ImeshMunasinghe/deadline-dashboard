@@ -85,8 +85,7 @@ function TaskPickerModal({
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
       <div
-        className="bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800
-          rounded-2xl shadow-2xl w-full max-w-lg flex flex-col max-h-[80vh]"
+        className="floating-surface rounded-2xl w-full max-w-lg flex flex-col max-h-[80vh]"
       >
         {/* Header */}
         <div className="flex items-center justify-between px-5 pt-5 pb-3 shrink-0">
@@ -403,6 +402,14 @@ export function TodayView({ state, dispatch }: TodayViewProps) {
   const isOverCapacity = totalMinutes > CAPACITY_MINUTES;
   const unplanned = dueTodayTasks.filter(({ task }) => !plannedIds.has(task.id));
 
+  // Today's glance bar: completed today vs (completed today + still-due/overdue)
+  const completedToday = state.goals.reduce(
+    (sum, g) => sum + g.tasks.filter((t) => t.completedAt && t.completedAt.startsWith(today)).length,
+    0
+  );
+  const todayTotal = completedToday + dueTodayTasks.length;
+  const todayPercent = todayTotal === 0 ? 0 : Math.round((completedToday / todayTotal) * 100);
+
   return (
     <>
       {showPicker && (
@@ -443,6 +450,21 @@ export function TodayView({ state, dispatch }: TodayViewProps) {
             </button>
           </div>
         </div>
+
+        {/* ── Today's progress glance bar ── */}
+        {todayTotal > 0 && (
+          <div className="mb-6 flex items-center gap-3">
+            <div className="h-1.5 flex-1 bg-slate-100 dark:bg-neutral-800 rounded-full overflow-hidden">
+              <div
+                className="h-full rounded-full bg-emerald-500 transition-all duration-500 ease-out"
+                style={{ width: `${todayPercent}%` }}
+              />
+            </div>
+            <span className="text-[11px] font-medium text-slate-400 dark:text-neutral-500 tabular-nums shrink-0">
+              {todayPercent}% done today
+            </span>
+          </div>
+        )}
 
         {/* ── Daily capacity meter ── */}
         <div className="card p-4 mb-6">

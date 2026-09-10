@@ -115,9 +115,9 @@ export function PomodoroTimer({ state, dispatch }: PomodoroTimerProps) {
       {/* ── In-app toast notification ──────────────────────────────── */}
       {toast && (
         <div
-          className="fixed bottom-36 right-6 z-[60] toast-slide-up max-w-xs
-            bg-white dark:bg-neutral-900 border border-blue-200 dark:border-blue-800
-            shadow-xl rounded-xl px-4 py-3 flex items-center gap-3"
+          className="fixed bottom-36 right-6 z-[60] toast-slide-up max-w-xs floating-surface
+            border border-blue-200 dark:border-blue-800
+            px-4 py-3 flex items-center gap-3"
         >
           <div className="w-2 h-2 rounded-full bg-blue-500 shrink-0" />
           <p className="text-sm font-medium text-slate-800 dark:text-neutral-100">{toast}</p>
@@ -181,7 +181,7 @@ export function PomodoroTimer({ state, dispatch }: PomodoroTimerProps) {
         )}
 
         {/* Main circle button */}
-        <div className="relative w-24 h-24">
+        <div className={`relative w-24 h-24 ${pomo.running ? 'ambient-glow' : ''}`}>
           {/* SVG ring */}
           <svg
             width="96"

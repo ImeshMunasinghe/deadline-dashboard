@@ -117,7 +117,7 @@ function _TaskItem({ task, goalId, dispatch, dragHandleProps, availableTasks, fo
           disabled={!!isBlocked}
           onClick={handleToggle}
           aria-label={task.completed ? 'Mark task incomplete' : 'Mark task complete'}
-          className={`shrink-0 mt-0.5 w-4 h-4 rounded border transition-all ${
+          className={`shrink-0 mt-0.5 w-4 h-4 rounded border transition-all active-rebound ${
             isBlocked
               ? 'border-slate-300 dark:border-neutral-700 bg-slate-100 dark:bg-neutral-800 opacity-50 cursor-not-allowed'
               : task.completed

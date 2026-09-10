@@ -428,11 +428,12 @@ export function Sidebar({ state, dispatch, onOpenReflection }: SidebarProps) {
                     setIsOpen(false);
                   }
                 }}
-                className={`focus-ring group flex items-center gap-2 px-2 py-2 rounded-lg text-left transition-all cursor-pointer ${
+                className={`focus-ring group flex items-center gap-2 px-2 py-2 rounded-lg text-left transition-all cursor-pointer border ${
                   isActive
-                    ? 'bg-blue-600/10 dark:bg-blue-900/40 border border-blue-200 dark:border-blue-700/50 text-blue-700 dark:text-blue-300'
-                    : 'text-slate-500 dark:text-neutral-400 hover:bg-slate-100 dark:hover:bg-neutral-900 hover:text-slate-800 dark:hover:text-neutral-200'
+                    ? 'border-blue-200 dark:border-blue-700/50 text-blue-700 dark:text-blue-300'
+                    : 'border-transparent text-slate-500 dark:text-neutral-400 hover:bg-slate-100 dark:hover:bg-neutral-900 hover:text-slate-800 dark:hover:text-neutral-200'
                 }`}
+                style={isActive ? { backgroundColor: `${goal.color}1a`, borderColor: `${goal.color}55` } : undefined}
               >
                 <ChevronRight
                   size={12}
@@ -479,6 +480,16 @@ export function Sidebar({ state, dispatch, onOpenReflection }: SidebarProps) {
             );
           })}
         </nav>
+
+        {/* Quick-capture hint */}
+        <div className="mt-auto pt-2">
+          <div className="flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-lg bg-slate-100 dark:bg-neutral-900 text-[10px] text-slate-400 dark:text-neutral-500">
+            <span>Quick capture</span>
+            <kbd className="inline-flex items-center rounded border border-slate-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-1 py-px font-mono text-[9px] font-semibold text-slate-500 dark:text-neutral-400">
+              Ctrl K
+            </kbd>
+          </div>
+        </div>
       </aside>
 
       {/* Mobile overlay */}

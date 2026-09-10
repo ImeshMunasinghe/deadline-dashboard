@@ -156,7 +156,7 @@ export function CountdownCard({ goal, dispatch, onReport }: CountdownCardProps) 
     : 'text-blue-500';
 
   return (
-    <div className="relative bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-2xl p-6 overflow-hidden">
+    <div className="relative bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-2xl p-6 overflow-hidden transition-transform duration-200 hover:-translate-y-0.5">
       {/* Subtle ambient glow */}
       <div className="absolute inset-0 bg-gradient-to-br from-blue-900/10 to-transparent pointer-events-none rounded-2xl" />
 
