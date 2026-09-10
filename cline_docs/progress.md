@@ -1,6 +1,9 @@
 # Progress
 
 ## Completed ✅
+- Premium UI polish pass (2026-09-10): CSS-only, no deps — `.floating-surface` elevation on modals/floating widgets, `.animate-fade-in-up` view transitions, `.active-rebound` checkbox spring, `.ambient-glow` running-Pomodoro breathing, CountdownCard hover lift, goal-color-tinted active sidebar row, Ctrl+K sidebar hint, TodayView "% done today" glance bar
+- Fixed goal edit form carrying previous goal's data across switches (CountdownCard `key={activeGoal.id}` in App.tsx)
+
 # Workflow rule: all future tasks follow the Ponytail lazy-senior-dev skill in `.clinerules` (smallest working diff, reuse, no unrequested abstractions, `ponytail:` comments on deliberate corner-cuts).
 - Background-safe per-task Pomodoro: timestamp-based shared singleton timer (`usePomodoro` in `src/hooks/index.ts`, pure `computePomodoroTick` in `src/utils`), per-task play/pause button on `TaskItem`, shared focus target in `AppState.focusTargetId`; timer survives tab switching and refresh; fixed never-firing focus-time logging
 - Fixed Analytics "Write Today's Reflection" button (was dispatching a dead `open-reflection` CustomEvent + junk `__trigger__` reflection); now opens the DailyReflection modal via an `onOpenReflection` prop wired in App.tsx (`AnalyticsView.tsx`, `App.tsx`)
