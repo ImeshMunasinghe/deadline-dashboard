@@ -1,6 +1,8 @@
 # Progress
 
 ## Completed ✅
+- **PWA installability fix** (2026-09-10, `0a87c59`): PNG 192/512/maskable icons in manifest, explicit SW registration (`registerSW({ immediate: true })`), theme-color/apple-touch-icon meta, shortcut deep links (`?view=&capture=&focus=`) handled via tested `parseLaunchParams` + QuickCapture `autoOpen` prop, `src/vite-env.d.ts` for vite-plugin-pwa/client types
+- **Mobile install UX** (2026-09-10, `2600ae1`): install button always visible (hidden only when already standalone), native `beforeinstallprompt` prompt with fallback platform-aware manual-steps dialog (iOS Safari has no install API), bottom toolbar wraps on narrow screens
 - Premium UI polish pass (2026-09-10): CSS-only, no deps — `.floating-surface` elevation on modals/floating widgets, `.animate-fade-in-up` view transitions, `.active-rebound` checkbox spring, `.ambient-glow` running-Pomodoro breathing, CountdownCard hover lift, goal-color-tinted active sidebar row, Ctrl+K sidebar hint, TodayView "% done today" glance bar
 - Fixed goal edit form carrying previous goal's data across switches (CountdownCard `key={activeGoal.id}` in App.tsx)
 
