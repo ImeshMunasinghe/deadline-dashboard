@@ -245,6 +245,61 @@ export function computePace(goal: Goal, now: Date = new Date()): GoalPace {
   return { status, tasksPerDayNeeded: Math.round(needed * 10) / 10, tasksPerDayActual: Math.round(actual * 10) / 10 };
 }
 
+// ─── Pomodoro Timer (wall-clock / background-safe) ─────────────────────────
+// The countdown is stored as an absolute `endsAt` timestamp and derived from
+// the wall clock on every tick. This means background-tab throttling (or even
+// a sessionStorage-restored refresh) cannot lose time — when the tab is
+// revisited, the timer catches up instantly and completes any finished phase.
+
+export const POMODORO_FOCUS_SECONDS = 25 * 60;
+export const POMODORO_BREAK_SECONDS = 5 * 60;
+
+export type PomodoroPhase = 'focus' | 'break';
+
+export interface PomodoroTick {
+  phase: PomodoroPhase;
+  endsAt: number; // absolute epoch ms when the current phase ends
+  running: boolean;
+  sessions: number; // completed focus sessions so far
+  secondsLeft: number;
+  completedFocus: number; // focus sessions completed during this tick (0 or 1)
+}
+
+export function computePomodoroTick(
+  phase: PomodoroPhase,
+  endsAt: number,
+  running: boolean,
+  sessions: number,
+  now: number
+): PomodoroTick {
+  if (!running || now < endsAt) {
+    return {
+      phase,
+      endsAt,
+      running,
+      sessions,
+      secondsLeft: Math.max(0, Math.ceil((endsAt - now) / 1000)),
+      completedFocus: 0,
+    };
+  }
+
+  // A phase finished while we weren't looking (throttled/background). The timer
+  // stops after each phase, so at most one phase completes in the elapsed gap.
+  const didCompleteFocus = phase === 'focus';
+  const nextPhase: PomodoroPhase = didCompleteFocus ? 'break' : 'focus';
+  const durMs = (nextPhase === 'focus' ? POMODORO_FOCUS_SECONDS : POMODORO_BREAK_SECONDS) * 1000;
+  const nextEndsAt = endsAt + durMs;
+
+  return {
+    phase: nextPhase,
+    endsAt: nextEndsAt,
+    running: false,
+    sessions: sessions + (didCompleteFocus ? 1 : 0),
+    secondsLeft: Math.max(0, Math.ceil((nextEndsAt - now) / 1000)),
+    completedFocus: didCompleteFocus ? 1 : 0,
+  };
+}
+
 // ─── State Normalization (migration for stored data) ──────────────────────
 // Ensures tasks carry fields added after initial release (e.g. actualMinutes).
 
@@ -278,6 +333,7 @@ export function normalizeState(state: AppState): AppState {
     })),
     remindersEnabled: state.remindersEnabled ?? true,
     reminderLeadHours: state.reminderLeadHours ?? 24,
+    focusTargetId: state.focusTargetId ?? null,
   };
 }
 

@@ -8,10 +8,13 @@ import {
   Calendar,
   Clock,
   Lock,
+  Play,
+  Pause,
 } from 'lucide-react';
 import type { Task, Priority, SubTask } from '../types';
 import type { AppAction } from '../types';
 import { generateId, isOverdue, formatDate } from '../utils';
+import { startPomodoro, togglePomodoro } from '../hooks';
 
 interface TaskItemProps {
   task: Task;
@@ -19,6 +22,8 @@ interface TaskItemProps {
   dispatch: React.Dispatch<AppAction>;
   dragHandleProps?: React.HTMLAttributes<HTMLDivElement>;
   availableTasks?: Task[];
+  focusTargetId: string | null;
+  pomoRunning: boolean;
 }
 
 // Priority color system
@@ -34,7 +39,7 @@ const PRIORITY_DOT: Record<Priority, string> = {
   low: 'bg-emerald-500',
 };
 
-function _TaskItem({ task, goalId, dispatch, dragHandleProps, availableTasks }: TaskItemProps) {
+function _TaskItem({ task, goalId, dispatch, dragHandleProps, availableTasks, focusTargetId, pomoRunning }: TaskItemProps) {
   const [expanded, setExpanded] = useState(false);
   const [addingSubtask, setAddingSubtask] = useState(false);
   const [subtaskText, setSubtaskText] = useState('');
@@ -42,6 +47,21 @@ function _TaskItem({ task, goalId, dispatch, dragHandleProps, availableTasks }: 
   const [editingMinutes, setEditingMinutes] = useState(false);
 
   const isBlocked = task.blockedBy && availableTasks?.some(t => t.id === task.blockedBy && !t.completed);
+
+  const isFocusTarget = task.id === focusTargetId;
+  const isRunning = isFocusTarget && pomoRunning;
+
+  // Start the shared Pomodoro on this task (or pause/resume if already targeted)
+  const handleFocus = useCallback(() => {
+    if (!isFocusTarget) {
+      dispatch({ type: 'SET_FOCUS_TARGET', payload: { taskId: task.id } });
+    }
+    if (isFocusTarget && pomoRunning) {
+      togglePomodoro(); // pause the running session
+    } else {
+      startPomodoro(); // start or resume
+    }
+  }, [dispatch, task.id, isFocusTarget, pomoRunning]);
 
   const overdue = isOverdue(task.dueDate) && !task.completed;
   const subtasksDone = task.subtasks.filter((s) => s.completed).length;
@@ -273,6 +293,20 @@ function _TaskItem({ task, goalId, dispatch, dragHandleProps, availableTasks }: 
 
         {/* Right actions */}
         <div className="flex items-center gap-1 shrink-0">
+          {!task.completed && (
+            <button
+              onClick={handleFocus}
+              title={isRunning ? 'Pause timer for this task' : 'Start timer for this task'}
+              aria-label={isRunning ? `Pause timer for ${task.text}` : `Start timer for ${task.text}`}
+              className={`p-1 transition-colors ${
+                isRunning
+                  ? 'text-blue-600 dark:text-blue-400 animate-pulse'
+                  : 'text-slate-300 dark:text-neutral-700 opacity-0 group-hover:opacity-100 hover:text-blue-500'
+              }`}
+            >
+              {isRunning ? <Pause size={13} /> : <Play size={13} />}
+            </button>
+          )}
           {task.subtasks.length > 0 && (
             <button
               onClick={() => setExpanded((v) => !v)}

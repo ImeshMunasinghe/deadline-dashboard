@@ -23,7 +23,7 @@ import { useAppState, useDeadlineReminders } from './hooks';
 import { decodeGoalShare, generateId, getTaskStats, parseSmartInput } from './utils';
 import type { Goal, AppAction } from './types';
 
-function GoalView({ activeGoal, dispatch, onReport }: { activeGoal: Goal | null, dispatch: React.Dispatch<AppAction>, onReport?: (goal: Goal) => void }) {
+function GoalView({ activeGoal, dispatch, onReport, focusTargetId }: { activeGoal: Goal | null, dispatch: React.Dispatch<AppAction>, onReport?: (goal: Goal) => void, focusTargetId: string | null }) {
   if (!activeGoal) return <EmptyState />;
   
   return (
@@ -41,7 +41,7 @@ function GoalView({ activeGoal, dispatch, onReport }: { activeGoal: Goal | null,
       {/* Row 2: Task list (wide) + Right column */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="lg:col-span-2">
-          <TaskList goal={activeGoal} dispatch={dispatch} />
+          <TaskList goal={activeGoal} dispatch={dispatch} focusTargetId={focusTargetId} />
         </div>
         <div className="flex flex-col gap-4">
           <NotesMilestones goal={activeGoal} dispatch={dispatch} />
@@ -212,7 +212,7 @@ export default function App() {
         {state.activeView === 'timeline' && <TimelineView state={state} dispatch={dispatch} />}
         {state.activeView === 'importexport' && <ImportExportTab state={state} dispatch={dispatch} />}
         {(state.activeView === 'goal' || state.activeView === 'inbox') && (
-          <GoalView activeGoal={activeGoal} dispatch={dispatch} onReport={setReportGoal} />
+          <GoalView activeGoal={activeGoal} dispatch={dispatch} onReport={setReportGoal} focusTargetId={state.focusTargetId} />
         )}
       </main>
 

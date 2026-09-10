@@ -48,6 +48,55 @@ describe('computeCountdown', () => {
   });
 });
 
+// ─── computePomodoroTick ─────────────────────────────────────────────────────
+
+import { computePomodoroTick, POMODORO_FOCUS_SECONDS, POMODORO_BREAK_SECONDS } from './index';
+
+describe('computePomodoroTick', () => {
+  it('counts down seconds while running before the phase end', () => {
+    const now = 1_000_000_000;
+    const endsAt = now + 10_000;
+    const tick = computePomodoroTick('focus', endsAt, true, 5, now);
+    expect(tick.phase).toBe('focus');
+    expect(tick.secondsLeft).toBe(10);
+    expect(tick.running).toBe(true);
+    expect(tick.sessions).toBe(5);
+    expect(tick.completedFocus).toBe(0);
+  });
+
+  it('catches up a focus session that finished while the tab was throttled', () => {
+    // A focus phase ended 30 seconds ago; the next tick should roll into break.
+    const now = 100_000;
+    const endsAt = now - 30_000; // focus ended 30s earlier
+    const tick = computePomodoroTick('focus', endsAt, true, 4, now);
+    expect(tick.phase).toBe('break');
+    expect(tick.running).toBe(false);
+    expect(tick.sessions).toBe(5);
+    expect(tick.completedFocus).toBe(1);
+    expect(tick.secondsLeft).toBe(POMODORO_BREAK_SECONDS - 30);
+  });
+
+  it('catches a break phase that finished while away', () => {
+    const now = 200_000;
+    const endsAt = now - 60_000; // break ended a minute ago
+    const tick = computePomodoroTick('break', endsAt, true, 5, now);
+    expect(tick.phase).toBe('focus');
+    expect(tick.running).toBe(false);
+    expect(tick.sessions).toBe(5); // break completion doesn't add a session
+    expect(tick.completedFocus).toBe(0);
+  });
+
+  it('does nothing while paused (idle timer session-restored mid-phase)', () => {
+    const now = 300_000;
+    const endsAt = now + POMODORO_FOCUS_SECONDS * 1000; // fresh, future
+    const tick = computePomodoroTick('focus', endsAt, false, 2, now);
+    expect(tick.phase).toBe('focus');
+    expect(tick.running).toBe(false);
+    expect(tick.sessions).toBe(2);
+    expect(tick.secondsLeft).toBe(POMODORO_FOCUS_SECONDS);
+  });
+});
+
 // ─── computeDailyPlan ─────────────────────────────────────────────────────
 
 import { computeDailyPlan, computePace, normalizeState } from './index';
@@ -488,6 +537,7 @@ function makeState(overrides: Partial<AppState> = {}): AppState {
     reminderLeadHours: 24,
     plans: {},
     routines: [],
+    focusTargetId: null,
     ...overrides,
   };
 }

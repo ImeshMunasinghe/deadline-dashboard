@@ -15,6 +15,7 @@ export const initialState: AppState = {
   reminderLeadHours: 24,
   plans: {},
   routines: [],
+  focusTargetId: null,
 };
 
 // ─── Reducer ──────────────────────────────────────────────────────────────
@@ -387,6 +388,10 @@ export function appReducer(state: AppState, action: AppAction): AppState {
         }),
         inbox: state.inbox.some((t) => t.id === taskId) ? state.inbox.map(bump) : state.inbox,
       };
+    }
+
+    case 'SET_FOCUS_TARGET': {
+      return { ...state, focusTargetId: action.payload.taskId };
     }
 
     // ── Reminders ──────────────────────────────────────────────────────

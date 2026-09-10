@@ -3,11 +3,13 @@ import { Plus, ArrowUpDown } from 'lucide-react';
 import type { Goal, Task, Priority } from '../types';
 import type { AppAction } from '../types';
 import { generateId, priorityWeight, isOverdue, parseSmartInput } from '../utils';
+import { usePomodoroMeta } from '../hooks';
 import { TaskItem } from './TaskItem';
 
 interface TaskListProps {
   goal: Goal;
   dispatch: React.Dispatch<AppAction>;
+  focusTargetId: string | null;
 }
 
 type SortMode = 'manual' | 'priority' | 'dueDate' | 'status';
@@ -34,7 +36,8 @@ function sortTasks(tasks: Task[], mode: SortMode): Task[] {
   });
 }
 
-export function TaskList({ goal, dispatch }: TaskListProps) {
+export function TaskList({ goal, dispatch, focusTargetId }: TaskListProps) {
+  const { running: pomoRunning } = usePomodoroMeta();
   const [text, setText] = useState('');
   const [priority, setPriority] = useState<Priority>('medium');
   const [dueDate, setDueDate] = useState('');
@@ -241,6 +244,8 @@ export function TaskList({ goal, dispatch }: TaskListProps) {
                 dispatch={dispatch}
                 dragHandleProps={{ role: 'button', tabIndex: 0 }}
                 availableTasks={goal.tasks}
+                focusTargetId={focusTargetId}
+                pomoRunning={pomoRunning}
               />
             </div>
           ))}

@@ -1,7 +1,8 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import type { AppState, AppAction, CountdownState } from '../types';
 import { appReducer, initialState } from './reducer';
-import { computeCountdown, normalizeState } from '../utils';
+import { computeCountdown, normalizeState, computePomodoroTick, POMODORO_FOCUS_SECONDS, POMODORO_BREAK_SECONDS } from '../utils';
+import type { PomodoroPhase } from '../utils';
 import { useDeadlineReminders } from './useDeadlineReminders';
 
 export { useDeadlineReminders };
@@ -165,11 +166,142 @@ export function useCountdown(
 }
 
 // ─── usePomodoro ──────────────────────────────────────────────────────────
-// 25/5 Pomodoro timer. Returns state + controls.
+// Shared, background-safe Pomodoro timer.
+//
+// Time is stored as an absolute `endsAt` timestamp and derived from the wall
+// clock on every tick. This means the countdown no longer stalls when the tab
+// is in the background or throttled — when you come back, the elapsed time is
+// accounted for and any completed focus session is caught up.
+//
+// State is kept at module level (a singleton) so the floating PomodoroTimer and
+// FocusMode share one timer instead of each owning a separate one.
 
-type PomodoroPhase = 'focus' | 'break';
+const POMO_STORAGE_KEY = 'deadline-dashboard-pomo';
 
-interface PomodoroState {
+interface PomoPersist {
+  phase: PomodoroPhase;
+  endsAt: number; // absolute epoch ms when the current phase ends
+  running: boolean;
+  sessions: number; // completed focus sessions so far
+}
+
+function loadPersistedPomo(): PomoPersist {
+  try {
+    const raw = sessionStorage.getItem(POMO_STORAGE_KEY);
+    if (raw) {
+      const p = JSON.parse(raw) as PomoPersist;
+      if (p && typeof p.endsAt === 'number' && (p.phase === 'focus' || p.phase === 'break')) {
+        return { phase: p.phase, endsAt: p.endsAt, running: !!p.running, sessions: p.sessions || 0 };
+      }
+    }
+  } catch {
+    // ignore corrupted storage
+  }
+  return { phase: 'focus', endsAt: Date.now() + POMODORO_FOCUS_SECONDS * 1000, running: false, sessions: 0 };
+}
+
+let pomoState: PomoPersist = loadPersistedPomo();
+const pomoSubscribers = new Set<() => void>();
+
+function persistPomo() {
+  try {
+    const payload: PomoPersist = {
+      phase: pomoState.phase,
+      endsAt: pomoState.endsAt,
+      running: pomoState.running,
+      sessions: pomoState.sessions,
+    };
+    sessionStorage.setItem(POMO_STORAGE_KEY, JSON.stringify(payload));
+  } catch {
+    // storage may be unavailable; ignore
+  }
+}
+
+function notifyPomo() {
+  pomoSubscribers.forEach((cb) => cb());
+}
+
+function setPomoState(next: PomoPersist) {
+  pomoState = next;
+  persistPomo();
+  notifyPomo();
+}
+
+// Advance the timer against the wall clock (called on each shared tick).
+function tickPomodoro() {
+  const now = Date.now();
+  const tick = computePomodoroTick(pomoState.phase, pomoState.endsAt, pomoState.running, pomoState.sessions, now);
+  const completed = tick.completedFocus > 0;
+  const changed = tick.phase !== pomoState.phase
+    || tick.running !== pomoState.running
+    || tick.sessions !== pomoState.sessions
+    || completed;
+  if (!changed) return;
+  pomoState = { phase: tick.phase, endsAt: tick.endsAt, running: tick.running, sessions: tick.sessions };
+  persistPomo();
+  notifyPomo();
+}
+
+addTickListener(tickPomodoro);
+
+// ── Controls (module-level so any component can drive the shared timer) ────
+
+export function startPomodoro() {
+  const now = Date.now();
+  const durMs = (pomoState.phase === 'focus' ? POMODORO_FOCUS_SECONDS : POMODORO_BREAK_SECONDS) * 1000;
+  setPomoState({ ...pomoState, endsAt: now + durMs, running: true });
+}
+
+export function togglePomodoro() {
+  if (pomoState.running) {
+    setPomoState({ ...pomoState, running: false });
+  } else {
+    startPomodoro();
+  }
+}
+
+export function resetPomodoro() {
+  setPomoState({
+    phase: 'focus',
+    endsAt: Date.now() + POMODORO_FOCUS_SECONDS * 1000,
+    running: false,
+    sessions: pomoState.sessions,
+  });
+}
+
+export interface PomodoroMeta {
+  phase: PomodoroPhase;
+  running: boolean;
+  sessions: number;
+}
+
+// Lightweight subscription that only re-renders when running/phase/sessions
+// change (i.e. on transitions), NOT every second — ideal for task rows.
+export function usePomodoroMeta(): PomodoroMeta {
+  const [meta, setMeta] = useState<PomodoroMeta>({
+    phase: pomoState.phase,
+    running: pomoState.running,
+    sessions: pomoState.sessions,
+  });
+
+  useEffect(() => {
+    const run = () => {
+      setMeta((prev) => (
+        prev.running === pomoState.running
+        && prev.phase === pomoState.phase
+        && prev.sessions === pomoState.sessions
+          ? prev
+          : { phase: pomoState.phase, running: pomoState.running, sessions: pomoState.sessions }
+      ));
+    };
+    pomoSubscribers.add(run);
+    return () => { pomoSubscribers.delete(run); };
+  }, []);
+
+  return meta;
+}
+
+export interface PomodoroState {
   phase: PomodoroPhase;
   secondsLeft: number;
   running: boolean;
@@ -177,43 +309,27 @@ interface PomodoroState {
 }
 
 export function usePomodoro() {
-  const FOCUS = 25 * 60;
-  const BREAK = 5 * 60;
-
-  const [pomo, setPomo] = useState<PomodoroState>({
-    phase: 'focus',
-    secondsLeft: FOCUS,
-    running: false,
-    sessions: 0,
-  });
+  const [, force] = useState(0);
 
   useEffect(() => {
-    if (!pomo.running) return;
+    const sub = () => force((n) => n + 1);
+    pomoSubscribers.add(sub);
+    return () => { pomoSubscribers.delete(sub); };
+  }, []);
 
-    const id = setInterval(() => {
-      setPomo((prev) => {
-        if (prev.secondsLeft <= 1) {
-          const nextPhase: PomodoroPhase =
-            prev.phase === 'focus' ? 'break' : 'focus';
-          return {
-            phase: nextPhase,
-            secondsLeft: nextPhase === 'focus' ? FOCUS : BREAK,
-            running: false,
-            sessions: prev.phase === 'focus' ? prev.sessions + 1 : prev.sessions,
-          };
-        }
-        return { ...prev, secondsLeft: prev.secondsLeft - 1 };
-      });
-    }, 1000);
+  const now = Date.now();
+  const tick = computePomodoroTick(pomoState.phase, pomoState.endsAt, pomoState.running, pomoState.sessions, now);
 
-    return () => clearInterval(id);
-  }, [pomo.running, FOCUS, BREAK]);
-
-  const toggle = () => setPomo((p) => ({ ...p, running: !p.running }));
-  const reset = () =>
-    setPomo({ phase: 'focus', secondsLeft: FOCUS, running: false, sessions: pomo.sessions });
-
-  return { pomo, toggle, reset };
+  return {
+    pomo: {
+      phase: tick.phase,
+      secondsLeft: tick.secondsLeft,
+      running: tick.running,
+      sessions: tick.sessions,
+    } as PomodoroState,
+    toggle: togglePomodoro,
+    reset: resetPomodoro,
+  };
 }
 
 // ─── useStreak ────────────────────────────────────────────────────────────

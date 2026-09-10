@@ -1,4 +1,3 @@
-import React, { useEffect, useState } from 'react';
 import { X, Play, Pause, CheckCircle2, Timer } from 'lucide-react';
 import type { AppState, AppAction, Task } from '../types';
 import { usePomodoro } from '../hooks';
@@ -12,8 +11,9 @@ interface FocusModeProps {
 // ── Zen focus mode: full-screen single-task immersion ──────────────────────
 export function FocusMode({ state, dispatch, onClose }: FocusModeProps) {
   const { pomo, toggle } = usePomodoro();
-  const [taskId, setTaskId] = useState('');
-  const [toast, setToast] = useState<string | null>(null);
+  // Use the shared focus target so the floating timer and FocusMode agree; the
+  // always-mounted PomodoroTimer is responsible for logging focus time.
+  const taskId = state.focusTargetId ?? '';
 
   const allIncomplete: { task: Task; label: string; goalLabel: string }[] = [
     ...state.goals.flatMap((g) =>
@@ -23,16 +23,9 @@ export function FocusMode({ state, dispatch, onClose }: FocusModeProps) {
 
   const selected = allIncomplete.find((x) => x.task.id === taskId);
 
-  // Auto-log focus time when a focus session completes while a task is selected
-  useEffect(() => {
-    if (pomo.secondsLeft !== 0) return;
-    if (pomo.phase === 'focus' && taskId) {
-      dispatch({ type: 'LOG_FOCUS_TIME', payload: { taskId, minutes: 25 } });
-      setToast('Session logged.');
-      const t = setTimeout(() => setToast(null), 4000);
-      return () => clearTimeout(t);
-    }
-  }, [pomo.secondsLeft, pomo.phase, taskId, dispatch]); // eslint-disable-line react-hooks/exhaustive-deps
+  const handleSelect = (id: string) => {
+    dispatch({ type: 'SET_FOCUS_TARGET', payload: { taskId: id || null } });
+  };
 
   const mins = Math.floor(pomo.secondsLeft / 60);
   const secs = pomo.secondsLeft % 60;
@@ -57,7 +50,7 @@ export function FocusMode({ state, dispatch, onClose }: FocusModeProps) {
         <div className="mb-8 flex flex-col items-center gap-2">
           <select
             value={taskId}
-            onChange={(e) => setTaskId(e.target.value)}
+            onChange={(e) => handleSelect(e.target.value)}
             aria-label="Choose a task to focus on"
             className="text-center text-sm bg-neutral-900 border border-neutral-700 rounded-lg px-3 py-2 text-neutral-100 outline-none max-w-md"
           >
@@ -129,10 +122,6 @@ export function FocusMode({ state, dispatch, onClose }: FocusModeProps) {
           </button>
         )}
       </div>
-
-      {toast && (
-        <p className="toast-slide-up fixed bottom-6 text-sm text-blue-400">{toast}</p>
-      )}
 
       {/* Timer hint */}
       <p className="fixed bottom-5 left-0 right-0 text-center text-[11px] text-neutral-500 flex items-center justify-center gap-1">

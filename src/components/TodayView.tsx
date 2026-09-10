@@ -3,6 +3,7 @@ import { ListChecks, ArrowUp, ArrowDown, X, Search, Plus, CheckCircle2 } from 'l
 import type { AppState, AppAction, Task, Priority } from '../types';
 import { isOverdue, todayISO, computeDailyPlan, generateId } from '../utils';
 import type { PlanCandidate } from '../utils';
+import { usePomodoroMeta } from '../hooks';
 import { TaskItem } from './TaskItem';
 
 interface TodayViewProps {
@@ -314,6 +315,8 @@ function TaskPickerModal({
 export function TodayView({ state, dispatch }: TodayViewProps) {
   const today = todayISO();
   const [showPicker, setShowPicker] = useState(false);
+  const { running: pomoRunning } = usePomodoroMeta();
+  const focusTargetId = state.focusTargetId;
 
   // All incomplete tasks with goal context
   const allTasks: TodayTask[] = useMemo(() => {
@@ -545,6 +548,8 @@ export function TodayView({ state, dispatch }: TodayViewProps) {
                             goalId={item.goalId}
                             dispatch={dispatch}
                             availableTasks={state.goals.find((g) => g.id === item.goalId)?.tasks}
+                            focusTargetId={focusTargetId}
+                            pomoRunning={pomoRunning}
                           />
                         </div>
                       </li>
@@ -579,6 +584,8 @@ export function TodayView({ state, dispatch }: TodayViewProps) {
                           goalId={item.goalId}
                           dispatch={dispatch}
                           availableTasks={state.goals.find((g) => g.id === item.goalId)?.tasks}
+                          focusTargetId={focusTargetId}
+                          pomoRunning={pomoRunning}
                         />
                       </li>
                     ))}

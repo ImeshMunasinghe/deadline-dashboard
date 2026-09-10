@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Play, Pause, RotateCcw, Timer } from 'lucide-react';
 import { usePomodoro } from '../hooks';
 import type { AppState, AppAction, Task } from '../types';
@@ -22,7 +22,11 @@ export function PomodoroTimer({ state, dispatch }: PomodoroTimerProps) {
     ...state.inbox.filter((t) => !t.completed).map((t) => ({ task: t, label: `Inbox — ${t.text}` })),
   ];
 
-  const [selectedTaskId, setSelectedTaskId] = useState<string>('');
+  const [selectedTaskId, setSelectedTaskId] = useState(() => state.focusTargetId ?? '');
+  // Sync local id from AppState so starting/targeting from a task row updates it.
+  useEffect(() => {
+    setSelectedTaskId(state.focusTargetId ?? '');
+  }, [state.focusTargetId]);
   const selectedTask = focusableTasks.find((f) => f.task.id === selectedTaskId) ?? null;
 
   const mins = Math.floor(pomo.secondsLeft / 60);
@@ -53,18 +57,27 @@ export function PomodoroTimer({ state, dispatch }: PomodoroTimerProps) {
     return () => window.removeEventListener('keydown', onKey);
   }, [toggle]);
 
-  // ─── Phase complete: toast + confetti ────────────────────────────────────
+  // ─── Phase complete: toast + confetti + log focus time ───────────────────
+  // We detect a transition (phase flip) rather than `secondsLeft === 0`, which
+  // the old timer never actually hit. The shared singleton catches up sessions
+  // that completed while this tab was throttled in the background.
+  const lastPhaseRef = useRef(pomo.phase);
   useEffect(() => {
-    if (pomo.secondsLeft !== 0) return;
+    const prev = lastPhaseRef.current;
+    lastPhaseRef.current = pomo.phase;
 
-    // Log focus time to the selected task when a focus session completes
-    if (pomo.phase === 'focus' && selectedTaskId) {
-      dispatch({ type: 'LOG_FOCUS_TIME', payload: { taskId: selectedTaskId, minutes: 25 } });
-    }
+    // Only react on a real transition between phases.
+    if (prev === pomo.phase) return;
 
-    const msg = pomo.phase === 'focus'
+    const focusCompleted = pomo.phase === 'break'; // just left a focus phase
+    const msg = focusCompleted
       ? 'Focus session done. Take a break.'
       : 'Break over. Back to work.';
+
+    // Log 25 min to the selected task when a focus session completes
+    if (focusCompleted && selectedTaskId) {
+      dispatch({ type: 'LOG_FOCUS_TIME', payload: { taskId: selectedTaskId, minutes: 25 } });
+    }
 
     // In-app toast
     setToast(msg);
@@ -76,7 +89,7 @@ export function PomodoroTimer({ state, dispatch }: PomodoroTimerProps) {
     }
 
     // Confetti only on focus session complete
-    if (pomo.phase === 'focus') {
+    if (focusCompleted) {
       import('canvas-confetti').then((m) => {
         m.default({
           particleCount: 80,
@@ -88,7 +101,14 @@ export function PomodoroTimer({ state, dispatch }: PomodoroTimerProps) {
     }
 
     return () => clearTimeout(toastTimer);
-  }, [pomo.secondsLeft, pomo.phase, selectedTaskId, dispatch]); // eslint-disable-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pomo.phase, selectedTaskId, dispatch]);
+
+  // Keep the shared focus target in AppState in sync with the dropdown selection.
+  const handleTargetChange = (taskId: string) => {
+    setSelectedTaskId(taskId);
+    dispatch({ type: 'SET_FOCUS_TARGET', payload: { taskId: taskId || null } });
+  };
 
   return (
     <>
@@ -128,7 +148,7 @@ export function PomodoroTimer({ state, dispatch }: PomodoroTimerProps) {
           focus-within:opacity-100 transition-opacity duration-200">
           <select
             value={selectedTaskId}
-            onChange={(e) => setSelectedTaskId(e.target.value)}
+            onChange={(e) => handleTargetChange(e.target.value)}
             aria-label="Select task to log focus time"
             className="w-full text-xs bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-700
               text-slate-700 dark:text-neutral-300 rounded-lg px-2 py-1.5 shadow-lg outline-none cursor-pointer"

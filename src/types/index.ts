@@ -77,6 +77,8 @@ export interface AppState {
   plans: Record<string, DailyPlan>;
   // Recurring routine checklists that spawn tasks on demand
   routines: Routine[];
+  // ID of the task the Pomodoro timer is currently focused on (null = none)
+  focusTargetId: string | null;
 }
 
 export type ViewType = 'calendar' | 'today' | 'planner' | 'timeline' | 'analytics' | 'goal' | 'inbox' | 'importexport';
@@ -142,6 +144,7 @@ export type AppAction =
   | { type: 'DELETE_ROUTINE'; payload: { routineId: string } }
   // Focus time tracking
   | { type: 'LOG_FOCUS_TIME'; payload: { taskId: string; minutes: number } }
+  | { type: 'SET_FOCUS_TARGET'; payload: { taskId: string | null } }
   // Reminders
   | { type: 'TOGGLE_REMINDERS' }
   | { type: 'SET_REMINDER_LEAD'; payload: { hours: number } };
